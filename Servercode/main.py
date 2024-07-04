@@ -538,6 +538,7 @@ async def stock_chat(query: Query):
         raise HTTPException(status_code=500, detail="An error occurred while processing the chat query")
 
 
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

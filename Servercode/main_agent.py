@@ -1,311 +1,642 @@
-# # # main.py
-# # from fastapi import FastAPI, HTTPException
-# # from fastapi.middleware.cors import CORSMiddleware
-# # from pydantic import BaseModel
-# # from typing import List
-# # import pandas as pd
-# # import sqlite3
-
-# # app = FastAPI()
-
-# # # Enable CORS
-# # app.add_middleware(
-# #     CORSMiddleware,
-# #     allow_origins=["http://localhost:3000"],
-# #     allow_credentials=True,
-# #     allow_methods=["*"],
-# #     allow_headers=["*"],
-# # )
-
-# # # Load data and create database
-# # df = pd.read_csv("tsla_2014_2023.csv")
-# # conn = sqlite3.connect("tesla_stock.db")
-# # df.to_sql("stock_data", conn, if_exists="replace", index=False)
-# # conn.close()
-
-# # class StockData(BaseModel):
-# #     date: str
-# #     open: float
-# #     high: float
-# #     low: float
-# #     close: float
-# #     volume: int
-
-# # @app.get("/api/stock_data", response_model=List[StockData])
-# # async def get_stock_data():
-# #     conn = sqlite3.connect("tesla_stock.db")
-# #     df = pd.read_sql("SELECT * FROM stock_data", conn)
-# #     conn.close()
-# #     return df.to_dict(orient="records")
-
-# # @app.get("/api/chat")
-# # async def chat(message: str):
-# #     conn = sqlite3.connect("tesla_stock.db")
-# #     df = pd.read_sql("SELECT * FROM stock_data", conn)
-# #     conn.close()
-
-# #     if "highest price" in message.lower():
-# #         max_price = df["high"].max()
-# #         max_date = df.loc[df["high"].idxmax(), "date"]
-# #         return f"The highest price was ${max_price:.2f} on {max_date}."
-# #     elif "lowest price" in message.lower():
-# #         min_price = df["low"].min()
-# #         min_date = df.loc[df["low"].idxmin(), "date"]
-# #         return f"The lowest price was ${min_price:.2f} on {min_date}."
-# #     else:
-# #         return "I'm sorry, I don't understand that question. You can ask about the highest or lowest price."
-
-# # if __name__ == "__main__":
-# #     import uvicorn
-# #     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-# import os
-# import sqlite3
-# import pandas as pd
-# import numpy as np
-# from fastapi import FastAPI, HTTPException
-# from pydantic import BaseModel
-# import anthropic
-# from typing import List, Dict, Any
-# import ast
-
-# app = FastAPI()
-
-# ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-# if not ANTHROPIC_API_KEY:
-#     raise ValueError("ANTHROPIC_API_KEY environment variable is not set")
-
-# client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
-# class ChatRequest(BaseModel):
-#     message: str
-
-# def get_stock_data():
-#     conn = sqlite3.connect("tesla_stock.db")
-#     df = pd.read_sql("SELECT * FROM stock_data", conn)
-#     conn.close()
-#     return df
-
-# # Existing functions
-# def get_highest_price(df: pd.DataFrame) -> Dict[str, Any]:
-#     max_price = df["high"].max()
-#     max_date = df.loc[df["high"].idxmax(), "date"]
-#     return {"price": float(max_price), "date": str(max_date)}
-
-# def get_lowest_price(df: pd.DataFrame) -> Dict[str, Any]:
-#     min_price = df["low"].min()
-#     min_date = df.loc[df["low"].idxmin(), "date"]
-#     return {"price": float(min_price), "date": str(min_date)}
-
-# def get_average_price(df: pd.DataFrame) -> float:
-#     return float(df["close"].mean())
-
-# def get_price_range(df: pd.DataFrame) -> Dict[str, float]:
-#     return {"min": float(df["low"].min()), "max": float(df["high"].max())}
-
-# def get_volume_info(df: pd.DataFrame) -> Dict[str, Any]:
-#     max_volume = df["volume"].max()
-#     max_volume_date = df.loc[df["volume"].idxmax(), "date"]
-#     return {"max_volume": int(max_volume), "date": str(max_volume_date)}
-
-# def get_descriptive_stats(df: pd.DataFrame) -> Dict[str, Any]:
-#     return {
-#         "open": {
-#             "mean": float(df["open"].mean()),
-#             "median": float(df["open"].median()),
-#             "std": float(df["open"].std()),
-#             "min": float(df["open"].min()),
-#             "max": float(df["open"].max()),
-#         },
-#         "close": {
-#             "mean": float(df["close"].mean()),
-#             "median": float(df["close"].median()),
-#             "std": float(df["close"].std()),
-#             "min": float(df["close"].min()),
-#             "max": float(df["close"].max()),
-#         },
-#         "volume": {
-#             "mean": float(df["volume"].mean()),
-#             "median": float(df["volume"].median()),
-#             "std": float(df["volume"].std()),
-#             "min": float(df["volume"].min()),
-#             "max": float(df["volume"].max()),
-#         },
-#         "date_range": {
-#             "start": str(df["date"].min()),
-#             "end": str(df["date"].max()),
-#         },
-#         "total_trading_days": len(df),
-#     }
-
-# # Define available functions
-# available_functions = {
-#     "get_highest_price": get_highest_price,
-#     "get_lowest_price": get_lowest_price,
-#     "get_average_price": get_average_price,
-#     "get_price_range": get_price_range,
-#     "get_volume_info": get_volume_info,
-#     "get_descriptive_stats": get_descriptive_stats,
-# }
-
-# tools = [
-#     {
-#         "type": "function",
-#         "function": {
-#             "name": func_name,
-#             "description": f"Get {func_name.replace('_', ' ')}",
-#             "parameters": {
-#                 "type": "object",
-#                 "properties": {},
-#                 "required": []
-#             }
-#         }
-#     }
-#     for func_name in available_functions.keys()
-# ]
-
-# def create_new_function(df: pd.DataFrame, function_description: str) -> Dict[str, Any]:
-#     messages = [
-#         {"role": "system", "content": "You are an AI assistant capable of creating Python functions for data analysis. Create a function based on the given description using pandas and numpy. The function should take a pandas DataFrame 'df' as an argument and return the result as a dictionary."},
-#         {"role": "user", "content": f"Create a function for the following task: {function_description}"}
-#     ]
-    
-#     response = client.messages.create(
-#         model="claude-3-opus-20240229",
-#         max_tokens=1000,
-#         messages=messages
-#     )
-    
-#     function_code = response.content[0].text
-    
-#     # Extract the function definition
-#     function_ast = ast.parse(function_code)
-#     function_def = function_ast.body[0]
-    
-#     # Create a new function object
-#     new_function = lambda df: eval(compile(ast.Expression(function_def.body[-1].value), "<string>", "eval"))
-    
-#     # Execute the new function
-#     result = new_function(df)
-    
-#     return result
-
-# @app.post("/api/chat")
-# async def chat(request: ChatRequest):
-#     df = get_stock_data()
-    
-#     messages = [
-#         {"role": "system", "content": "You are a helpful assistant that analyzes Tesla stock data. Use the provided functions to get information about the stock. If no existing function can answer the query, suggest creating a new function."},
-#         {"role": "user", "content": request.message}
-#     ]
-    
-#     response = client.messages.create(
-#         model="claude-3-opus-20240229",
-#         max_tokens=1000,
-#         messages=messages,
-#         tools=tools
-#     )
-    
-#     if response.content[0].type == 'text':
-#         # Claude suggests creating a new function
-#         function_description = response.content[0].text
-#         result = create_new_function(df, function_description)
-        
-#         # Send the result back to Claude for interpretation
-#         messages.append({"role": "assistant", "content": f"New function created and executed. Result: {result}"})
-#         final_response = client.messages.create(
-#             model="claude-3-opus-20240229",
-#             max_tokens=1000,
-#             messages=messages
-#         )
-        
-#         return final_response.content[0].text
-#     elif response.content[0].type == 'tool_call':
-#         tool_call = response.content[0].tool_call
-#         function_name = tool_call.function.name
-        
-#         if function_name in available_functions:
-#             result = available_functions[function_name](df)
-#         else:
-#             # This shouldn't happen, but just in case
-#             return f"Error: Function {function_name} not found."
-        
-#         # Send the result back to Claude for interpretation
-#         messages.append({"role": "assistant", "content": f"Function {function_name} returned: {result}"})
-#         final_response = client.messages.create(
-#             model="claude-3-opus-20240229",
-#             max_tokens=1000,
-#             messages=messages
-#         )
-        
-#         return final_response.content[0].text
-#     else:
-#         raise HTTPException(status_code=500, detail="Unexpected response from Claude API")
-
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-# main.py
-
-from fastapi import FastAPI, File, UploadFile, Form
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Depends, HTTPException, status, Request, File, UploadFile, Form, Query
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
+from typing import Optional
+import databases
+import sqlalchemy 
+import traceback
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional
 import pandas as pd
 import yfinance as yf
+import io
+import re
 from io import StringIO
-import openai
-from typing import Optional
+import json
+from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
+import numpy as np
+from textblob import TextBlob
+import logging
+from openai import OpenAI
+import base64
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+from fastapi.params import Query as FastAPIQuery
 
-app = FastAPI()
 
-# Replace with your actual OpenAI API key
-openai.api_key = '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'
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print("Starting up...")
+    await database.connect()
+    yield
+    # Shutdown
+    print("Shutting down...")
+    await database.disconnect()
+
+app = FastAPI(lifespan=lifespan)
+
+
+client = OpenAI(api_key="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")
+
+# Enable CORS
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000","http://localhost:8000"],  # Add your frontend URL here
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+class StockData(BaseModel):
+    date: str
+    open: float
+    high: float
+    low: float
+    close: float
+    sma_20: float
+    sma_50: float
 
 class AnalysisRequest(BaseModel):
     request: str
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+#logger = logging.get#logger(__name__)
+
+# Database setup
+DATABASE_URL = "sqlite:///./test.db"
+database = databases.Database(DATABASE_URL)
+metadata = sqlalchemy.MetaData()
+
+users = sqlalchemy.Table(
+    "users",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("username", sqlalchemy.String, unique=True, index=True),
+    sqlalchemy.Column("hashed_password", sqlalchemy.String),
+)
+
+watchlists = sqlalchemy.Table(
+    "watchlists",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("user_id", sqlalchemy.ForeignKey("users.id")),
+    sqlalchemy.Column("symbol", sqlalchemy.String),
+)
+
+engine = sqlalchemy.create_engine(
+    DATABASE_URL, connect_args={"check_same_thread": False}
+)
+metadata.create_all(engine)
+
+# Authentication
+SECRET_KEY = "mahesh111111111212222222222222222333"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class User(BaseModel):
+    username: str
+
+class UserInDB(User):
+    hashed_password: str
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+class Query(BaseModel):
+    query: str
+
+class DataScienceQuestion(BaseModel):
+    question: str
+
+class CodeExecution(BaseModel):
+    code: str
+
+class StockData(BaseModel):
+    date: str
+    open: float
+    high: float
+    low: float
+    close: float
+    sma_20: Optional[float]
+    sma_50: Optional[float]
+
+class AnalysisRequest(BaseModel):
+    request: str
+
+class DataScienceQuery(BaseModel):
+    query: str
+    datasets: List[str]  # List of base64 encoded CSV data
+
+# Authentication functions
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+async def get_user(username: str):
+    query = users.select().where(users.c.username == username)
+    return await database.fetch_one(query)
+
+async def authenticate_user(username: str, password: str):
+    user = await get_user(username)
+    if not user:
+        return False
+    if not verify_password(password, user["hashed_password"]):
+        return False
+    return user
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = await get_user(username)
+    if user is None:
+        raise credentials_exception
+    return user
+
+
+# Middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    #logger.info(f"Received request: {request.method} {request.url}")
+    #logger.info(f"Headers: {request.headers}")
+    response = await call_next(request)
+    #logger.info(f"Response status: {response.status_code}")
+    return response
+
+# Authentication endpoints
+@app.post("/token", response_model=Token)
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    # #logger.info(f"Login attempt for user: {form_data.username}")
+    user = await authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user["username"]}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post("/register")
+async def register(user: UserCreate):
+    ##logger.info(f"Registration attempt for user: {user.username}")
+    query = users.select().where(users.c.username == user.username)
+    existing_user = await database.fetch_one(query)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
+    hashed_password = get_password_hash(user.password)
+    query = users.insert().values(username=user.username, hashed_password=hashed_password)
+    try:
+        await database.execute(query)
+        return {"message": "User created successfully"}
+    except Exception as e:
+        ##logger.error(f"Error during registration: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while registering the user")
+
+@app.get("/users/me", response_model=User)
+async def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+# Watchlist endpoints
+@app.post("/watchlist/add")
+async def add_to_watchlist(symbol: str, current_user: User = Depends(get_current_user)):
+    query = watchlists.insert().values(user_id=current_user["id"], symbol=symbol)
+    await database.execute(query)
+    return {"message": f"Added {symbol} to watchlist"}
+
+@app.get("/watchlist")
+async def get_watchlist(current_user: User = Depends(get_current_user)):
+    query = watchlists.select().where(watchlists.c.user_id == current_user["id"])
+    result = await database.fetch_all(query)
+    return [item["symbol"] for item in result]
+
+# Stock data and analysis functions
+def calculate_sma(data, window):
+    return data['Close'].rolling(window=window).mean()
+
+def calculate_rsi(data, window):
+    delta = data['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
+    rs = gain / loss
+    return 100 - (100 / (1 + rs))
+
+def perform_sentiment_analysis(text):
+    blob = TextBlob(text)
+    return blob.sentiment.polarity
+
+def analyze_stock_data(data: pd.DataFrame, request: str) -> str:
+    data['SMA_20'] = calculate_sma(data, 20)
+    data['SMA_50'] = calculate_sma(data, 50)
+    data['RSI'] = calculate_rsi(data, 14)
+
+    latest_close = data['Close'].iloc[-1]
+    sma_20 = data['SMA_20'].iloc[-1]
+    sma_50 = data['SMA_50'].iloc[-1]
+    rsi = data['RSI'].iloc[-1]
+
+    sentiment = perform_sentiment_analysis(request)
+
+    analysis = f"Analysis of your request: '{request}'\n\n"
+    analysis += f"Latest closing price: ${latest_close:.2f}\n"
+    analysis += f"20-day SMA: ${sma_20:.2f}\n"
+    analysis += f"50-day SMA: ${sma_50:.2f}\n"
+    analysis += f"14-day RSI: {rsi:.2f}\n\n"
+
+    if sma_20 > sma_50:
+        analysis += "The 20-day SMA is above the 50-day SMA, indicating a potential upward trend.\n"
+    else:
+        analysis += "The 20-day SMA is below the 50-day SMA, indicating a potential downward trend.\n"
+
+    if rsi > 70:
+        analysis += "The RSI is above 70, suggesting the stock might be overbought.\n"
+    elif rsi < 30:
+        analysis += "The RSI is below 30, suggesting the stock might be oversold.\n"
+    else:
+        analysis += "The RSI is between 30 and 70, indicating neutral momentum.\n"
+
+    if sentiment > 0:
+        analysis += "The sentiment of your request is positive.\n"
+    elif sentiment < 0:
+        analysis += "The sentiment of your request is negative.\n"
+    else:
+        analysis += "The sentiment of your request is neutral.\n"
+
+    return analysis
+
+# Stock data endpoints
+@app.get("/api/stock_data", response_model=List[StockData])
+async def get_stock_data(
+    symbol: str = FastAPIQuery("AAPL", description="Stock symbol"),
+    range: str = FastAPIQuery("1M", regex="^(1W|1M|3M|1Y)$", description="Date range")
+):
+    end_date = datetime.now()
+    
+    if range == "1W":
+        start_date = end_date - timedelta(days=7)
+    elif range == "1M":
+        start_date = end_date - timedelta(days=30)
+    elif range == "3M":
+        start_date = end_date - timedelta(days=90)
+    elif range == "1Y":
+        start_date = end_date - timedelta(days=365)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid date range")
+    
+    data = yf.download(symbol, start=start_date, end=end_date)
+    
+    data['SMA_20'] = data['Close'].rolling(window=20).mean()
+    data['SMA_50'] = data['Close'].rolling(window=50).mean()
+    
+    return [
+        StockData(
+            date=date.strftime("%Y-%m-%d"),
+            open=float(row['Open']),
+            high=float(row['High']),
+            low=float(row['Low']),
+            close=float(row['Close']),
+            sma_20=float(row['SMA_20']) if not pd.isna(row['SMA_20']) else None,
+            sma_50=float(row['SMA_50']) if not pd.isna(row['SMA_50']) else None
+        )
+        for date, row in data.iterrows()
+    ]
+
+
+@app.get("/api/stock_comparison")
+async def compare_stocks(
+    symbols: str = FastAPIQuery(..., description="Comma-separated stock symbols"),
+    range: str = FastAPIQuery("1M", regex="^(1W|1M|3M|1Y)$", description="Date range")
+):
+    end_date = datetime.now()
+    
+    if range == "1W":
+        start_date = end_date - timedelta(days=7)
+    elif range == "1M":
+        start_date = end_date - timedelta(days=30)
+    elif range == "3M":
+        start_date = end_date - timedelta(days=90)
+    elif range == "1Y":
+        start_date = end_date - timedelta(days=365)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid date range")
+    
+    symbol_list = symbols.split(',')
+    comparison_data = {}
+
+    for symbol in symbol_list:
+        data = yf.download(symbol, start=start_date, end=end_date)
+        if not data.empty:
+            start_price = data['Close'].iloc[0]
+            end_price = data['Close'].iloc[-1]
+            percent_change = ((end_price - start_price) / start_price) * 100
+            comparison_data[symbol] = {
+                "start_price": start_price,
+                "end_price": end_price,
+                "percent_change": percent_change
+            }
+        else:
+            comparison_data[symbol] = {"error": "No data available"}
+
+    return comparison_data
+
 
 @app.post("/analyze")
 async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(None)):
     try:
         if file:
-            # Read the CSV file
             contents = await file.read()
-            df = pd.read_csv(StringIO(contents.decode("UTF8")), encoding='utf-8')
+            data = pd.read_csv(StringIO(contents.decode("utf-8")))
         else:
-            # If no file is uploaded, use a default stock (e.g., AAPL) for the last 6 months
-            df = yf.download('AAPL', period='6mo')
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=30)
+            data = yf.download("TSLA", start=start_date, end=end_date)
 
-        # Prepare the data for the OpenAI API
-        data_description = df.describe().to_string()
-        prompt = f"""
-        Given the following stock data and user request, provide a Python code snippet to perform the requested analysis. 
-        Also, include a brief explanation of the analysis and its results.
-
-        Stock Data Summary:
-        {data_description}
-
-        User Request: {request}
-
-        Python Code:
-        """
-
-        # Call OpenAI API
-        response = openai.Completion.create(
-            engine="text-davinci-002",
-            prompt=prompt,
-            max_tokens=500
-        )
-
-        # Extract the generated code and explanation
-        analysis_result = response.choices[0].text.strip()
-
-        return JSONResponse(content={'result': analysis_result})
-
+        analysis_result = analyze_stock_data(data, request)
+        return {"result": analysis_result}
     except Exception as e:
-        return JSONResponse(status_code=400, content={'error': str(e)})
+        raise HTTPException(status_code=400, detail=str(e))
 
-if __name__ == '__main__':
+
+
+# @app.post("/api/analyze")
+async def analyze(query: Query):
+    try:
+        # Step 1: Process Query
+        #logger.debug(f"Processing query: {query.query}")
+        processed_question = await process_query(query.query)
+        
+        # Step 2: Generate Code
+        #logger.debug(f"Generating code for question: {processed_question}")
+        generated_code = await generate_code(processed_question)
+        
+        # Step 3: Execute Analysis
+        #logger.debug("Executing analysis")
+        analysis_result = await execute_analysis(generated_code)
+        
+        return {
+            "processed_question": processed_question,
+            "generated_code": generated_code,
+            "analysis_result": analysis_result
+        }
+    except Exception as e:
+        #logger.error(f"Error in analysis pipeline: {str(e)}")
+        #logger.error(traceback.format_exc())
+        return {
+            "error": str(e),
+            "processed_question": processed_question if 'processed_question' in locals() else None,
+            "generated_code": generated_code if 'generated_code' in locals() else None,
+            "analysis_result": None
+        }
+
+async def process_query(query: str):
+    prompt = f"""
+    Given the following user query about stock market analysis, formulate a specific data science question:
+    User Query: {query}
+    Data Science Question:
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo-0125",
+            messages=[
+                {"role": "system", "content": "You are a data science expert specializing in stock market analysis."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        #logger.error(f"Error in process_query: {str(e)}")
+        raise Exception(f"Error processing query: {str(e)}")
+
+
+async def generate_code(question: str):
+    prompt = f"""
+    Generate Python code to answer the following data science question about stock market analysis. Use yfinance to fetch real-time stock data, and pandas, numpy, matplotlib for analysis and visualization. Do not use any local CSV files. Always fetch data using yfinance.
+    Question: {question}
+    Python Code:
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo-0125",
+            messages=[
+                {"role": "system", "content": "You are a data science expert specializing in stock market analysis. Generate Python code to answer the given question using yfinance for data retrieval."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        generated_code = response.choices[0].message.content.strip()
+        # Remove markdown code block delimiters if present
+        generated_code = re.sub(r'^```python\n|```\n?$', '', generated_code, flags=re.MULTILINE)
+        return generated_code
+    except Exception as e:
+        #logger.error(f"Error in generate_code: {str(e)}")
+        raise Exception(f"Error generating code: {str(e)}")
+
+
+async def execute_analysis(code: str):
+    try:
+        safe_globals = {
+            "pd": pd,
+            "np": np,
+            "plt": plt,
+            "yf": yf,
+            "LinearRegression": LinearRegression,
+            "train_test_split": train_test_split,
+            "mean_squared_error": mean_squared_error,
+            "r2_score": r2_score
+        }
+        safe_locals = {}
+
+        # Add a custom print function to capture output
+        output = []
+        def custom_print(*args, **kwargs):
+            output.append(' '.join(map(str, args)))
+        safe_globals['print'] = custom_print
+
+        # Execute the code
+        exec(code, safe_globals, safe_locals)
+
+        # Join captured output
+        text_output = '\n'.join(output)
+
+        # Check if a plot was created
+        if plt.get_fignums():
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png')
+            buf.seek(0)
+            plot_data = base64.b64encode(buf.getvalue()).decode()
+            plt.close('all')  # Close all plots to free memory
+            return {"result": text_output, "plot": plot_data}
+        else:
+            return {"result": text_output}
+    except Exception as e:
+        #logger.error(f"Error in execute_analysis: {str(e)}")
+        #logger.error(f"Problematic code:\n{code}")
+        raise Exception(f"Error executing analysis: {str(e)}")
+    
+
+@app.post("/api/stock-chat")
+async def stock_chat(query: Query):
+    prompt = f"""
+    You are an AI assistant specializing in stock market analysis. Answer the following question about stocks:
+    User Query: {query.query}
+    Response:
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are an AI assistant specializing in stock market analysis."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return {"reply": response.choices[0].message.content.strip()}
+    except Exception as e:
+        ##logger.error(f"Error in stock chat: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while processing the chat query")
+
+
+@app.post("/api/analyze")
+def query_desicion(query: Query):
+    prompt = f"""
+        Given the following user query about stock market, Determine to which below category the input query belongs to
+        1) If the query is a data science question then return 1 
+        2) if the query is related to information that can be retrieved from financial documents then return 2
+        3) if the query requires information from web to get the relevant information  then return 3
+        User Query: {query}
+        """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo-0125",
+            messages=[
+                {"role": "system", "content": "You are a query evaluator, with expert world knowledge and stock market expertise."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        #logger.error(f"Error in process_query: {str(e)}")
+        raise Exception(f"Error processing query: {str(e)}")
+
+
+
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+from llama_agents import (
+    AgentService,
+    HumanService,
+    AgentOrchestrator,
+    CallableMessageConsumer,
+    ControlPlaneServer,
+    ServerLauncher,
+    SimpleMessageQueue,
+    QueueMessage,
+)
+
+from llama_index.core.agent import FunctionCallingAgentWorker
+from llama_index.core.tools import FunctionTool
+from llama_index.llms.openai import OpenAI
+
+
+datascience_tool = FunctionTool.from_defaults(fn=analyze)
+#vectorDB_tool = FunctionTool.from_defaults(fn= ? )
+#web_tool = FuntionTool.from_defaults(fn=?)
+
+if query_desicion() == 1:
+    datascience_agent1 = FunctionCallingAgentWorker.from_tools([datascience_tool], llm=OpenAI())
+    agent1 = datascience_agent1.as_agent()
+elif query_desicion() == 2:
+    #implement functionality :  information that can be retrieved from financial documents
+    retreval_agent2 = FunctionCallingAgentWorker.from_tools([], llm=OpenAI())
+    agent2 = retreval_agent2.as_agent()
+else :
+    web_agent3 = FunctionCallingAgentWorker.from_tools([], llm=OpenAI())
+    agent3 = web_agent3.as_agent()
+
+
+# create our multi-agent framework components
+message_queue = SimpleMessageQueue()
+queue_client = message_queue.client
+
+control_plane = ControlPlaneServer(
+    message_queue=queue_client,
+    orchestrator=AgentOrchestrator(llm=OpenAI()),
+)
+agent_server_1 = AgentService(
+    agent=agent1,
+    message_queue=queue_client,
+    description="agent used to process data science query",
+    service_name=" data science agent",
+    host="127.0.0.1",
+    port=8002,
+)
+agent_server_2 = AgentService(
+    agent=agent2,
+    message_queue=queue_client,
+    description=" vector retrival from Silo of company documents",
+    service_name="company analysis agent ",
+    host="127.0.0.1",
+    port=8003,
+)
+agent_server_3 = AgentService(
+    agent = agent3,
+    message_queue=queue_client,
+    description=" useful for extracting company information from web ",
+    host="127.0.0.1",
+    port=8004,
+)
+
+# launch it
+launcher = ServerLauncher(
+    [agent_server_1, agent_server_2, agent_server_3],
+    control_plane,
+    message_queue,
+)
+
+launcher.launch_servers()
+
+if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

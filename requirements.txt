@@ -3,3 +3,4 @@ pip install passlib python-jose[cryptography] databases[sqlite] sqlalchemy
 pip install bcrypt
 pip install pandas matplotlib scikit-learn
 pip3 insatll openai
+pip3 install llama_index
