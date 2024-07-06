@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { createChart, ColorType } from 'lightweight-charts';
-import { Card, CardContent, Typography, Box, Button, CircularProgress, Alert, TextField, Select, MenuItem } from '@mui/material';
+import { Card, CardContent, Typography, Box, Button, CircularProgress, Alert, TextField, Select, MenuItem, Grid, List, ListItem, ListItemText } from '@mui/material';
 import { useAppContext } from '../context/AppContext';
 
 const API_URL = 'http://localhost:8000';
@@ -13,6 +13,14 @@ const StockChart = () => {
   const { error, setError, loading, setLoading } = useAppContext();
   const chartContainerRef = React.useRef();
   const [debugInfo, setDebugInfo] = useState('');
+
+  const highVolumeStocks = [
+    { name: 'AAPL', ask: 150.25, bid: 150.20, volume: 1000000 },
+    { name: 'GOOGL', ask: 2800.50, bid: 2800.25, volume: 500000 },
+    { name: 'MSFT', ask: 300.75, bid: 300.70, volume: 750000 },
+    { name: 'AMZN', ask: 3400.00, bid: 3399.50, volume: 300000 },
+    { name: 'FB', ask: 330.25, bid: 330.00, volume: 600000 },
+  ];
 
   const fetchStockData = useCallback(async (range, stockSymbol) => {
     setLoading(true);
@@ -112,45 +120,76 @@ const StockChart = () => {
   };
 
   return (
-    <Card>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>Stock Data Visualization</Typography>
-        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
-          <TextField
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-            placeholder="Enter stock symbol"
-            size="small"
-            sx={{ mr: 2, width: 120 }}
-          />
-          <Select
-            value={dateRange}
-            onChange={(e) => handleDateRangeChange(e.target.value)}
-            size="small"
-            sx={{ mr: 2, width: 80 }}
-          >
-            <MenuItem value="1W">1W</MenuItem>
-            <MenuItem value="1M">1M</MenuItem>
-            <MenuItem value="3M">3M</MenuItem>
-            <MenuItem value="1Y">1Y</MenuItem>
-          </Select>
-          <Button variant="contained" onClick={() => fetchStockData(dateRange, symbol)}>
-            Fetch Data
-          </Button>
-        </Box>
-        <Box sx={{ height: 400, position: 'relative' }} ref={chartContainerRef}>
-          {loading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', position: 'absolute', width: '100%', backgroundColor: 'rgba(255,255,255,0.8)' }}>
-              <CircularProgress />
+    <Grid container spacing={2}>
+      <Grid item xs={12} md={8}>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>Stock Data Visualization</Typography>
+            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center' }}>
+              <TextField
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                placeholder="Enter stock symbol"
+                size="small"
+                sx={{ mr: 2, width: 120 }}
+              />
+              <Select
+                value={dateRange}
+                onChange={(e) => handleDateRangeChange(e.target.value)}
+                size="small"
+                sx={{ mr: 2, width: 80 }}
+              >
+                <MenuItem value="1W">1W</MenuItem>
+                <MenuItem value="1M">1M</MenuItem>
+                <MenuItem value="3M">3M</MenuItem>
+                <MenuItem value="1Y">1Y</MenuItem>
+              </Select>
+              <Button variant="contained" onClick={() => fetchStockData(dateRange, symbol)}>
+                Fetch Data
+              </Button>
             </Box>
-          )}
-        </Box>
-        {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-        <Typography variant="body2" sx={{ mt: 2, whiteSpace: 'pre-line', color: 'text.secondary' }}>
-          {debugInfo}
-        </Typography>
-      </CardContent>
-    </Card>
+            <Box sx={{ height: 400, position: 'relative' }} ref={chartContainerRef}>
+              {loading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', position: 'absolute', width: '100%', backgroundColor: 'rgba(255,255,255,0.8)' }}>
+                  <CircularProgress />
+                </Box>
+              )}
+            </Box>
+            {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+            <Typography variant="body2" sx={{ mt: 2, whiteSpace: 'pre-line', color: 'text.secondary' }}>
+              {debugInfo}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid item xs={12} md={4}>
+        <Card sx={{ height: '100%' }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>High Volume Stocks</Typography>
+            <List>
+              {highVolumeStocks.map((stock, index) => (
+                <ListItem key={index} divider={index < highVolumeStocks.length - 1}>
+                  <ListItemText
+                    primary={stock.name}
+                    secondary={
+                      <React.Fragment>
+                        <Typography component="span" variant="body2" color="text.primary">
+                          Ask: ${stock.ask.toFixed(2)} | Bid: ${stock.bid.toFixed(2)}
+                        </Typography>
+                        <br />
+                        <Typography component="span" variant="body2" color="text.secondary">
+                          Volume: {stock.volume.toLocaleString()}
+                        </Typography>
+                      </React.Fragment>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
   );
 };
 

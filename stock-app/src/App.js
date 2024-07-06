@@ -223,13 +223,13 @@ function App() {
             <Login onLogin={handleLogin} />
             ) : (
             <Grid container spacing={3}>
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12} md={12}>
                 <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="h6" gutterBottom>Stock Chart</Typography>
                     <StockChart stock={selectedStock} />
                 </Paper>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={6}>
                 <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
                     <AnalysisForm
                     onStockSelect={handleStockSelect}
@@ -237,11 +237,11 @@ function App() {
                     />
                 </Paper>
                 </Grid>
-                <Grid item xs={12}>
+                {/* <Grid item xs={12}>
                 <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
                     <StockComparison />
                 </Paper>
-                </Grid>
+                </Grid> */}
                 <Grid item xs={12} md={6}>
                 <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 400 }}>
                     <ChatHistory
@@ -250,8 +250,8 @@ function App() {
                     />
                 </Paper>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column', height: 400 }}>
+                <Grid item xs={12} md={12}>
+                <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
                     <DataScienceQueryExecutor />
                 </Paper>
                 </Grid> 

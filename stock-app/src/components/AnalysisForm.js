@@ -357,7 +357,7 @@ const AnalysisForm = () => {
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" gutterBottom>Analysis Request</Typography>
+        <Typography variant="h6" gutterBottom>Stock Pattern Analysis</Typography>
         <form onSubmit={handleSubmit}>
           <FormControl fullWidth margin="normal">
             <InputLabel id="analysis-type-label">Analysis Type</InputLabel>
