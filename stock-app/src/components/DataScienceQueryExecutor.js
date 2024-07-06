@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import analysis from "../images/analysis.jpg";
+import analysis from "../image/analysis.jpg";
 import {
   Card,
   CardContent,
@@ -79,7 +79,7 @@ const DataScienceQueryExecutor = () => {
       <Box sx={{ display: 'flex', gap: 2, flexGrow: 1, overflow: 'auto' }}>
         <Card sx={{ flex: 1, overflow: 'auto' }}>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h5" gutterBottom>
               Interactive Pattern Analysis
             </Typography>
             <form onSubmit={handleSubmit}>
@@ -93,7 +93,7 @@ const DataScienceQueryExecutor = () => {
                 placeholder="Enter your query about stock market analysis here"
                 margin="normal"
               />
-              <p>Example: Give me which day in week was most traded?</p>
+              <p style={{color:'grey'}}>Example: Give me which day in week was most traded?</p>
               <Button
                 type="submit"
                 variant="contained"
