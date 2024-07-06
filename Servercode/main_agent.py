@@ -69,7 +69,7 @@ class AnalysisRequest(BaseModel):
     request: str
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 #logger = logging.get#logger(__name__)
 
 # Database setup
@@ -193,14 +193,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 
 
-# Middleware
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    #logger.info(f"Received request: {request.method} {request.url}")
-    #logger.info(f"Headers: {request.headers}")
-    response = await call_next(request)
-    #logger.info(f"Response status: {response.status_code}")
-    return response
+# # Middleware
+# @app.middleware("http")
+# async def log_requests(request: Request, call_next):
+#     #logger.info(f"Received request: {request.method} {request.url}")
+#     #logger.info(f"Headers: {request.headers}")
+#     response = await call_next(request)
+#     #logger.info(f"Response status: {response.status_code}")
+#     return response
 
 # Authentication endpoints
 @app.post("/token", response_model=Token)
@@ -402,34 +402,105 @@ async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(No
 
 
 # @app.post("/api/analyze")
+# async def analyze(query: Query):
+#     try:
+#         # Step 1: Process Query
+#         #logger.debug(f"Processing query: {query.query}")
+#         processed_question = await process_query(query.query)
+        
+#         # Step 2: Generate Code
+#         #logger.debug(f"Generating code for question: {processed_question}")
+#         generated_code = await generate_code(processed_question)
+        
+#         # Step 3: Execute Analysis
+#         #logger.debug("Executing analysis")
+#         analysis_result = await execute_analysis(generated_code)
+        
+#         return {
+#             "processed_question": processed_question,
+#             "generated_code": generated_code,
+#             "analysis_result": analysis_result
+#         }
+#     except Exception as e:
+#         #logger.error(f"Error in analysis pipeline: {str(e)}")
+#         #logger.error(traceback.format_exc())
+#         return {
+#             "error": str(e),
+#             "processed_question": processed_question if 'processed_question' in locals() else None,
+#             "generated_code": generated_code if 'generated_code' in locals() else None,
+#             "analysis_result": None
+#         }
+
+
+@app.post("/api/analyze")
 async def analyze(query: Query):
     try:
-        # Step 1: Process Query
-        #logger.debug(f"Processing query: {query.query}")
-        processed_question = await process_query(query.query)
+        decision = await query_decision(query.query)
         
-        # Step 2: Generate Code
-        #logger.debug(f"Generating code for question: {processed_question}")
-        generated_code = await generate_code(processed_question)
-        
-        # Step 3: Execute Analysis
-        #logger.debug("Executing analysis")
-        analysis_result = await execute_analysis(generated_code)
-        
-        return {
-            "processed_question": processed_question,
-            "generated_code": generated_code,
-            "analysis_result": analysis_result
-        }
+        if decision == "1":
+            # Data science query
+            return await process_data_science_query(query)
+        elif decision == "2":
+            # Financial document retrieval
+            return await process_financial_document_query(query)
+        elif decision == "3":
+            # Web information retrieval
+            return await process_web_information_query(query)
+        else:
+            raise ValueError(f"Invalid decision: {decision}")
+    
     except Exception as e:
         #logger.error(f"Error in analysis pipeline: {str(e)}")
         #logger.error(traceback.format_exc())
         return {
             "error": str(e),
-            "processed_question": processed_question if 'processed_question' in locals() else None,
-            "generated_code": generated_code if 'generated_code' in locals() else None,
+            "processed_question": None,
+            "generated_code": None,
             "analysis_result": None
         }
+
+async def query_decision(query: str):
+    prompt = f"""
+        Given the following user query about stock market, Determine to which below category the input query belongs to
+        1) If the query is a data science question then return 1 
+        2) if the query is related to information that can be retrieved from financial documents then return 2
+        3) if the query requires information from web to get the relevant information  then return 3
+        User Query: {query}
+        """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo-0125",
+            messages=[
+                {"role": "system", "content": "You are a query evaluator, with expert world knowledge and stock market expertise."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        raise Exception(f"Error processing query: {str(e)}")
+
+async def process_data_science_query(query: Query):
+    # This is your existing data science query processing
+    processed_question = await process_query(query.query)
+    generated_code = await generate_code(processed_question)
+    analysis_result = await execute_analysis(generated_code)
+    
+    return {
+        "processed_question": processed_question,
+        "generated_code": generated_code,
+        "analysis_result": analysis_result
+    }
+
+async def process_financial_document_query(query: Query):
+    # TODO: Implement financial document retrieval logic
+    # This is where you'll implement the RAG (Retrieval-Augmented Generation) system
+    return {"result": "Financial document retrieval not implemented yet"}
+
+async def process_web_information_query(query: Query):
+    # TODO: Implement web information retrieval logic
+    return {"result": "Web information retrieval not implemented yet"}
+
+
 
 async def process_query(query: str):
     prompt = f"""
@@ -468,6 +539,7 @@ async def generate_code(question: str):
         generated_code = response.choices[0].message.content.strip()
         # Remove markdown code block delimiters if present
         generated_code = re.sub(r'^```python\n|```\n?$', '', generated_code, flags=re.MULTILINE)
+        print(generated_code )
         return generated_code
     except Exception as e:
         #logger.error(f"Error in generate_code: {str(e)}")
@@ -561,81 +633,6 @@ def query_desicion(query: Query):
         raise Exception(f"Error processing query: {str(e)}")
 
 
-
-# ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-from llama_agents import (
-    AgentService,
-    HumanService,
-    AgentOrchestrator,
-    CallableMessageConsumer,
-    ControlPlaneServer,
-    ServerLauncher,
-    SimpleMessageQueue,
-    QueueMessage,
-)
-
-from llama_index.core.agent import FunctionCallingAgentWorker
-from llama_index.core.tools import FunctionTool
-from llama_index.llms.openai import OpenAI
-
-
-datascience_tool = FunctionTool.from_defaults(fn=analyze)
-#vectorDB_tool = FunctionTool.from_defaults(fn= ? )
-#web_tool = FuntionTool.from_defaults(fn=?)
-
-if query_desicion() == 1:
-    datascience_agent1 = FunctionCallingAgentWorker.from_tools([datascience_tool], llm=OpenAI())
-    agent1 = datascience_agent1.as_agent()
-elif query_desicion() == 2:
-    #implement functionality :  information that can be retrieved from financial documents
-    retreval_agent2 = FunctionCallingAgentWorker.from_tools([], llm=OpenAI())
-    agent2 = retreval_agent2.as_agent()
-else :
-    web_agent3 = FunctionCallingAgentWorker.from_tools([], llm=OpenAI())
-    agent3 = web_agent3.as_agent()
-
-
-# create our multi-agent framework components
-message_queue = SimpleMessageQueue()
-queue_client = message_queue.client
-
-control_plane = ControlPlaneServer(
-    message_queue=queue_client,
-    orchestrator=AgentOrchestrator(llm=OpenAI()),
-)
-agent_server_1 = AgentService(
-    agent=agent1,
-    message_queue=queue_client,
-    description="agent used to process data science query",
-    service_name=" data science agent",
-    host="127.0.0.1",
-    port=8002,
-)
-agent_server_2 = AgentService(
-    agent=agent2,
-    message_queue=queue_client,
-    description=" vector retrival from Silo of company documents",
-    service_name="company analysis agent ",
-    host="127.0.0.1",
-    port=8003,
-)
-agent_server_3 = AgentService(
-    agent = agent3,
-    message_queue=queue_client,
-    description=" useful for extracting company information from web ",
-    host="127.0.0.1",
-    port=8004,
-)
-
-# launch it
-launcher = ServerLauncher(
-    [agent_server_1, agent_server_2, agent_server_3],
-    control_plane,
-    message_queue,
-)
-
-launcher.launch_servers()
 
 if __name__ == "__main__":
     import uvicorn
