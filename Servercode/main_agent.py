@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Request, File, UploadFile, Form, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
@@ -435,10 +434,13 @@ async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(No
 @app.post("/api/analyze")
 async def analyze(query: Query):
     try:
-        decision = await query_decision(query.query)
-        
+        decision_ = await query_decision(query.query)
+        print(f" inside the function")
+        decision = str("1") # for testing purpose
+        print(f" the decision is {decision}" )
         if decision == "1":
             # Data science query
+            print("inside the query")
             return await process_data_science_query(query)
         elif decision == "2":
             # Financial document retrieval
@@ -462,10 +464,11 @@ async def analyze(query: Query):
 async def query_decision(query: str):
     prompt = f"""
         Given the following user query about stock market, Determine to which below category the input query belongs to
-        1) If the query is a data science question then return 1 
+        1) If the query is a data science question then return  1 
         2) if the query is related to information that can be retrieved from financial documents then return 2
         3) if the query requires information from web to get the relevant information  then return 3
         User Query: {query}
+        Return only the number corresponding to the correct category (1, 2, or 3).
         """
     try:
         response = client.chat.completions.create(
@@ -475,7 +478,15 @@ async def query_decision(query: str):
                 {"role": "user", "content": prompt}
             ]
         )
-        return response.choices[0].message.content.strip()
+        #return response.choices[0].message.content.strip()
+        query_decision_response = response.choices[0].message.content.strip()
+        match = re.search(r"category (\d+)",query_decision_response)
+        if match:
+            decision = match.group(1)
+            print(f"Extracted digit: {decision}")
+        else:
+            print("Digit not found in the string.")
+        return decision
     except Exception as e:
         raise Exception(f"Error processing query: {str(e)}")
 
@@ -484,7 +495,12 @@ async def process_data_science_query(query: Query):
     processed_question = await process_query(query.query)
     generated_code = await generate_code(processed_question)
     analysis_result = await execute_analysis(generated_code)
-    
+    print("******* processed_question is ********** \n\n")
+    print(processed_question)
+    print("******* generated_code is **********\n\n")
+    print(generated_code)
+    print("******* analysis_result is **********\n\n")
+    print(analysis_result)
     return {
         "processed_question": processed_question,
         "generated_code": generated_code,
@@ -516,6 +532,7 @@ async def process_query(query: str):
                 {"role": "user", "content": prompt}
             ]
         )
+
         return response.choices[0].message.content.strip()
     except Exception as e:
         #logger.error(f"Error in process_query: {str(e)}")
@@ -539,7 +556,7 @@ async def generate_code(question: str):
         generated_code = response.choices[0].message.content.strip()
         # Remove markdown code block delimiters if present
         generated_code = re.sub(r'^```python\n|```\n?$', '', generated_code, flags=re.MULTILINE)
-        print(generated_code )
+        # print(generated_code )
         return generated_code
     except Exception as e:
         #logger.error(f"Error in generate_code: {str(e)}")

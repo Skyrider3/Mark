@@ -7,3 +7,6 @@ pip3 install llama_index
 pip install --only-binary :all: fastapi[all]
 pip install llama_agents
 pip install pydantic
+pip3 install llama_index.llms.ollama
+pip3 install llama_index.embeddings.ollama-0.1.2
+pip3 install llama-index-vector-stores-qdrant
