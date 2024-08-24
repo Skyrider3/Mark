@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import analysis from "../image/analysis.jpg";
+import analysis from "../../image/analysis.jpg";
 import {
   Card,
   CardContent,
@@ -75,9 +75,16 @@ const DataScienceQueryExecutor = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
-      <Box sx={{ display: 'flex', gap: 2, flexGrow: 1, overflow: 'auto' }}>
-        <Card sx={{ flex: 1, overflow: 'auto' }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        width: "100%",
+      }}
+    >
+      <Box sx={{ display: "flex", gap: 2, flexGrow: 1, overflow: "auto" }}>
+        <Card sx={{ flex: 1, overflow: "auto" }}>
           <CardContent>
             <Typography variant="h5" gutterBottom>
               Interactive Pattern Analysis
@@ -93,7 +100,9 @@ const DataScienceQueryExecutor = () => {
                 placeholder="Enter your query about stock market analysis here"
                 margin="normal"
               />
-              <p style={{color:'grey'}}>Example: Give me which day in week was most traded?</p>
+              <p style={{ color: "grey" }}>
+                Example: Give me which day in week was most traded?
+              </p>
               <Button
                 type="submit"
                 variant="contained"
@@ -155,7 +164,7 @@ const DataScienceQueryExecutor = () => {
         </Card>
 
         {analysisResult && (
-          <Card sx={{ flex: 1, overflow: 'auto' }}>
+          <Card sx={{ flex: 1, overflow: "auto" }}>
             <CardContent>
               <Typography variant="h6">Analysis Result:</Typography>
               <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>

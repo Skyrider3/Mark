@@ -1,7 +1,7 @@
 // src/components/ChatInput.js
 import React, { useState } from 'react';
 import { TextField, Button, Box } from '@mui/material';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../../context/AppContext';
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8000';

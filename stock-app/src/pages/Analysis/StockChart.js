@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { createChart, ColorType } from 'lightweight-charts';
 import { Card, CardContent, Typography, Box, Button, CircularProgress, Alert, TextField, Select, MenuItem, Grid, List, ListItem, ListItemText } from '@mui/material';
-import { useAppContext } from '../context/AppContext';
+import { useAppContext } from '../../context/AppContext';
 
 const API_URL = 'http://localhost:8000';
 
