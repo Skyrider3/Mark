@@ -125,7 +125,7 @@ const AnalysisHome = () => {
           setLoading(true);
           const response = await axios.get(`${API_URL}/api/financialgurus`);
           if (response.data) {
-            const expertMenuItems = response.data.map((expertItem) => ({
+            const expertMenuItems = response.data.gurus.map((expertItem) => ({
               key: expertItem.name,
               value: `${expertItem.name} (${expertItem.expertise})`,
             }));
