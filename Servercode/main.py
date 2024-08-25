@@ -559,6 +559,7 @@ async def get_financial_gurus():
         {"name": "Ray Dalio", "expertise": "Macroeconomic Investing"},
 
     ]
+
     return {"gurus": gurus}
 
 
