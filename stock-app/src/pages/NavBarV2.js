@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import ptlogo from '../image/ptlogo.png'
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
@@ -188,7 +189,7 @@ const UserMenu = ({ isOpen, toggleMenu }) => {
       <div className="px-4 py-3 border-b border-gray-700">
         <div className="flex items-center">
           <img
-            src="path/to/user/avatar.jpg"
+            src={ptlogo}
             alt="User"
             className="w-10 h-10 rounded-full mr-3"
           />
@@ -359,7 +360,7 @@ const NavbarV2 = () => {
             className="ml-2 w-8 h-8 bg-gray-600 rounded-full overflow-hidden z-30"
           >
             <img
-              src="path/to/user/avatar.jpg"
+              src={ptlogo}
               alt="User"
               className="w-full h-full object-cover"
             />
