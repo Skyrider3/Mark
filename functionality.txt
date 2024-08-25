@@ -1,0 +1,52 @@
+Analysis with Llama 3.1 model to generate respective content and generate reports
+
+FUNDAMENTAL ANALYSIS
+
+Industry overview
+Market position
+Competitive advantages
+Economic moat analysis
+
+
+COMPANY FINANCIALS
+
+Revenue and profit trends
+Balance sheet health
+Cash flow analysis
+Key financial ratios (e.g. P/E, P/B, Debt-to-Equity)
+
+
+COMPANY ANALYSIS
+
+Management quality and track record
+Corporate governance
+Business model sustainability
+Product/service pipeline
+
+
+RISK ANALYSIS
+
+Market risks
+Operational risks
+Financial risks
+Regulatory risks
+
+
+FUTURE GROWTH ANALYSIS
+
+Market expansion opportunities
+Potential for innovation
+Strategic partnerships or acquisitions
+Long-term industry trends
+
+
+QUARTERLY/SEASONAL MONITORING CHECKLIST
+
+Revenue growth rate
+Profit margins
+Customer acquisition costs
+Inventory turnover
+Debt levels
+Cash reserves
+R&D spending
+Market share changes
