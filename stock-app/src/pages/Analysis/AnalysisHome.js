@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Typography, Grid, Paper, Button } from "@mui/material";
 import Login from "../Authentication/Login";
 import StockChart from "./StockChart";
@@ -7,13 +7,16 @@ import StockComparison from "./StockComparison";
 import ChatHistory from "./ChatHistory";
 import DataScienceQueryExecutor from "./DataScienceQueryExecutor";
 import NavBar from "../NavBar";
-import NavbarV2 from "../NavBarV2";
+import axios from "axios";
+
+const API_URL = "http://localhost:8000";
 
 const AnalysisHome = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [selectedStock, setSelectedStock] = useState("AAPL");
-  const [chatHistory, setChatHistory] = useState([]);
+  const [stockChatHistory, setStockChatHistory] = useState([]);
+  const [expertChatHistory, setExpertChatHistory] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
 
   const categories = [
@@ -36,8 +39,12 @@ const AnalysisHome = () => {
     setSelectedStock(stock);
   };
 
-  const handleNewChatMessage = (message) => {
-    setChatHistory((prevHistory) => [...prevHistory, message]);
+  const handleNewStockChatMessage = (message) => {
+    setStockChatHistory((prevHistory) => [...prevHistory, message]);
+  };
+
+  const handleNewExpertChatMessage = (message) => {
+    setExpertChatHistory((prevHistory) => [...prevHistory, message]);
   };
 
   const StockCompare = () => {
@@ -54,22 +61,33 @@ const AnalysisHome = () => {
   };
 
   const StockChat = () => {
+    const stockMenuItems = [
+      { key: "general", label: "General" },
+      { key: "technical", label: "Technical" },
+      { key: "sentiment", label: "Sentiment" },
+    ];
+    let menu = {menuName: 'Analysis Type', menuItems: stockMenuItems}
+
     return (
       <Grid item xs={12} md={12}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <Paper
               elevation={3}
-              sx={{ 
-                p: 2, 
-                display: "flex", 
+              sx={{
+                p: 2,
+                display: "flex",
                 flexDirection: "column",
-                height: '100%' // This ensures both papers have the same height
+                height: "100%", // This ensures both papers have the same height
               }}
             >
               <AnalysisForm
+                selectedStock={selectedStock}
+                apiEndpoint={'analyze'}
+                componentName={'Chart With Stock'}
                 onStockSelect={handleStockSelect}
-                onAnalysisRequest={handleNewChatMessage}
+                onAnalysisRequest={handleNewExpertChatMessage}
+                menu={menu}
               />
             </Paper>
           </Grid>
@@ -84,8 +102,8 @@ const AnalysisHome = () => {
               }}
             >
               <ChatHistory
-                history={chatHistory}
-                onNewMessage={handleNewChatMessage}
+                history={stockChatHistory}
+                onNewMessage={handleNewStockChatMessage}
               />
             </Paper>
           </Grid>
@@ -94,7 +112,84 @@ const AnalysisHome = () => {
     );
   };
 
+
+
   const ExpertChat = () => {
+    const [expertMenu, setExpertMenu] = useState({ menuName: 'Expert', menuItems: [] });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+      const getExpertMenuItems = async () => {
+        try {
+          setLoading(true);
+          const response = await axios.get(`${API_URL}/api/financialgurus`);
+          if (response.data) {
+            const expertMenuItems = response.data.map((expertItem) => ({
+              key: expertItem.name,
+              value: `${expertItem.name} (${expertItem.expertise})`,
+            }));
+            setExpertMenu({ menuName: 'Expert', menuItems: expertMenuItems });
+          }
+        } catch (e) {
+          console.error("Error fetching expert names", e);
+          setError("Failed to load expert list");
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      getExpertMenuItems();
+    }, []);
+
+    if (loading) return <div>Loading experts...</div>;
+    if (error) return <div>Error: {error}</div>;
+
+    return (
+      <Grid item xs={12} md={12}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Paper
+              elevation={3}
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: "100%", // This ensures both papers have the same height
+              }}
+            >
+              <AnalysisForm
+                selectedStock={selectedStock}
+                componentName={'Chart With Analyst Expert'}
+                apiEndpoint={'AIAdvisor'}
+                onStockSelect={handleStockSelect}
+                onAnalysisRequest={handleNewExpertChatMessage}
+                menu={expertMenu}
+              />
+            </Paper>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Paper
+              elevation={3}
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: 400,
+              }}
+            >
+              <ChatHistory
+                history={expertChatHistory}
+                onNewMessage={handleNewExpertChatMessage}
+              />
+            </Paper>
+          </Grid>
+        </Grid>
+      </Grid>
+    );
+  };
+
+  const InteractiveAI = () => {
     return (
       <Grid item xs={12} md={12}>
         <Paper
@@ -113,32 +208,15 @@ const AnalysisHome = () => {
     );
   };
 
-  const InteractiveAI = () => {
-    return (<Grid item xs={12} md={12}>
-      <Paper
-        elevation={3}
-        sx={{
-          p: 2,
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          width: "100%",
-        }}
-      >
-        <DataScienceQueryExecutor />
-      </Paper>
-    </Grid>);
-  }
-
   const renderActiveComponent = () => {
-    switch(activeCategory) {
-      case 'chatStock':
+    switch (activeCategory) {
+      case "chatStock":
         return <StockChat />;
-      case 'compareStock':
+      case "compareStock":
         return <StockCompare />;
-      case 'interactiveAi':
+      case "interactiveAi":
         return <InteractiveAI />;
-      case 'chatAnalyist':
+      case "chatAnalyist":
         return <ExpertChat />;
       default:
         return null;
@@ -147,7 +225,7 @@ const AnalysisHome = () => {
 
   return (
     <>
-      <NavbarV2 />
+      <NavBar />
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         {!isAuthenticated ? (
           <Login onLogin={handleLogin} />
@@ -187,7 +265,7 @@ const AnalysisHome = () => {
             {activeCategory && (
               <Grid item xs={12}>
                 {renderActiveComponent()}
-             </Grid>
+              </Grid>
             )}
           </Grid>
         )}

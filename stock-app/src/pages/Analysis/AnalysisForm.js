@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   Card,
@@ -19,7 +19,12 @@ import { useAppContext } from "../../context/AppContext";
 
 const API_URL = "http://localhost:8000";
 
-const AnalysisForm = () => {
+const AnalysisForm = ({
+  selectedStock,
+  apiEndpoint,
+  componentName,
+  menu,
+}) => {
   const [request, setRequest] = useState("");
   const [file, setFile] = useState(null);
   const [analysisType, setAnalysisType] = useState("general");
@@ -38,12 +43,13 @@ const AnalysisForm = () => {
 
     const formData = new FormData();
     formData.append("request", `${analysisType} analysis: ${request}`);
+    formData.append("stock", selectedStock);
     if (file) {
       formData.append("file", file);
     }
 
     try {
-      const response = await axios.post(`${API_URL}/analyze`, formData, {
+      const response = await axios.post(`${API_URL}/${apiEndpoint}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -62,6 +68,9 @@ const AnalysisForm = () => {
     }
   };
 
+  console.log('menu name:', menu.menuName); // For debugging
+  console.log('menu items:', menu.menuItems); // For debugging
+
   const handleCloseSnackbar = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -73,20 +82,26 @@ const AnalysisForm = () => {
     <Card>
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Stock Pattern Analysis
+          {componentName ? componentName : "Stock Pattern Analysis"}
         </Typography>
         <form onSubmit={handleSubmit}>
           <FormControl fullWidth margin="normal">
-            <InputLabel id="analysis-type-label">Analysis Type</InputLabel>
+            <InputLabel id="analysis-type-label">{menu.menuName}</InputLabel>
             <Select
               labelId="analysis-type-label"
               value={analysisType}
               onChange={(e) => setAnalysisType(e.target.value)}
-              label="Analysis Type"
+              label={menu.menuName}
             >
-              <MenuItem value="general">General</MenuItem>
-              <MenuItem value="technical">Technical</MenuItem>
-              <MenuItem value="sentiment">Sentiment</MenuItem>
+              {menu.menuItems && menu.menuItems.length > 0 ? (
+                menu.menuItems.map((menuItem) => (
+                  <MenuItem key={menuItem.key} value={menuItem.key}>
+                    {menuItem.label}
+                  </MenuItem>
+                ))
+              ) : (
+                <MenuItem value="">No items available</MenuItem>
+              )}
             </Select>
           </FormControl>
           <TextField
