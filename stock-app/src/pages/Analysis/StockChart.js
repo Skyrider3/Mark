@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { createChart, ColorType } from 'lightweight-charts';
-import { Card, CardContent, Typography, Box, Button, CircularProgress, Alert, TextField, Select, MenuItem, Grid, List, ListItem, ListItemText } from '@mui/material';
+import { Card, CardContent, Typography, Box, Button, FormControl, CircularProgress, Alert, TextField, Select, MenuItem, Grid, List, ListItem, ListItemText } from '@mui/material';
 import { useAppContext } from '../../context/AppContext';
 
 const API_URL = 'http://localhost:8000';
@@ -13,6 +13,7 @@ const StockChart = () => {
   const { error, setError, loading, setLoading } = useAppContext();
   const chartContainerRef = React.useRef();
   const [debugInfo, setDebugInfo] = useState('');
+  const [selectedOption, setSelectedOption] = useState('highVolume');
 
   const highVolumeStocks = [
     { name: 'AAPL', ask: 150.25, bid: 150.20, volume: 1000000 },
@@ -21,6 +22,13 @@ const StockChart = () => {
     { name: 'AMZN', ask: 3400.00, bid: 3399.50, volume: 300000 },
     { name: 'FB', ask: 330.25, bid: 330.00, volume: 600000 },
   ];
+
+  const stockOptions = {
+    highVolume: { title: 'High Volume Stocks', data: highVolumeStocks },
+    topTech: { title: 'Top Tech Stocks', data: highVolumeStocks },
+    topTrending: { title: 'Top Trending Stocks', data: highVolumeStocks },
+    bestBuy: { title: 'Best Buy Stocks', data: highVolumeStocks },
+  };
 
   const fetchStockData = useCallback(async (range, stockSymbol) => {
     setLoading(true);
@@ -119,6 +127,10 @@ const StockChart = () => {
     setDateRange(range);
   };
 
+  const handleChange = (event) => {
+    setSelectedOption(event.target.value);
+  };
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} md={8}>
@@ -164,10 +176,23 @@ const StockChart = () => {
       </Grid>
       <Grid item xs={12} md={4}>
         <Card sx={{ height: '100%' }}>
+        <FormControl fullWidth>
+          <Select
+            value={selectedOption}
+            onChange={handleChange}
+            displayEmpty
+            inputProps={{ 'aria-label': 'Without label' }}
+          >
+            <MenuItem value="highVolume">High Volume Stocks</MenuItem>
+            <MenuItem value="topTech">Top Tech Stocks</MenuItem>
+            <MenuItem value="topTrending">Top Trending Stocks</MenuItem>
+            <MenuItem value="bestBuy">Best Buy Stocks</MenuItem>
+          </Select>
+        </FormControl>
           <CardContent>
-            <Typography variant="h6" gutterBottom>High Volume Stocks</Typography>
+            <Typography variant="h6" gutterBottom>{stockOptions[selectedOption].title}</Typography>
             <List>
-              {highVolumeStocks.map((stock, index) => (
+              {stockOptions[selectedOption].data.map((stock, index) => (
                 <ListItem key={index} divider={index < highVolumeStocks.length - 1}>
                   <ListItemText
                     primary={stock.name}
