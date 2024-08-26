@@ -35,7 +35,7 @@ const AnalysisForm = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!request.trim()) {
-      setError("Please enter an analysis request.");
+      setError("Please enter chart query.");
       return;
     }
     setLoading(true);
@@ -50,7 +50,7 @@ const AnalysisForm = ({
     }
 
     try {
-      const response = await axios.post(`${API_URL}/${apiEndpoint}`, formData, {
+      const response = await axios.post(`${API_URL}/api/${apiEndpoint}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -112,7 +112,7 @@ const AnalysisForm = ({
             variant="outlined"
             value={request}
             onChange={(e) => setRequest(e.target.value)}
-            placeholder="Enter your stock analysis request here..."
+            placeholder="Enter your chat query here..."
             margin="normal"
           />
           <Box
@@ -153,7 +153,7 @@ const AnalysisForm = ({
             severity="success"
             sx={{ width: "100%" }}
           >
-            Analysis completed successfully!
+            Query completed successfully!
           </Alert>
         </Snackbar>
         {error && (
