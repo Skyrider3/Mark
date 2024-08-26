@@ -5,6 +5,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 import AnalysisHome from "./pages/Analysis/AnalysisHome";
 import './index.css';
+import LandingPage from "./pages/Landing/LandingPage";
+import NewsPage from "./pages/News/NewsPage";
 
 const theme = createTheme({
   palette: {
@@ -39,6 +41,8 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<AnalysisHome />} />
+            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/news" element={<NewsPage />} />
           </Routes>
         </Router>
       </ThemeProvider>
