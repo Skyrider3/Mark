@@ -24,6 +24,7 @@ const AnalysisHome = () => {
     { key: "compareStock", label: "Compare Stock" },
     { key: "interactiveAi", label: "Interactive AI Analysis" },
     { key: "chatAnalyist", label: "Chat with Analyst Expert" },
+    { key: "AIAnalysis", label: "AI Comprehensive Analysis" },
   ];
 
   const handleCategoryClick = (category) => {
@@ -66,7 +67,7 @@ const AnalysisHome = () => {
       { key: "technical", label: "Technical" },
       { key: "sentiment", label: "Sentiment" },
     ];
-    let menu = {menuName: 'Analysis Type', menuItems: stockMenuItems}
+    let menu = { menuName: "Analysis Type", menuItems: stockMenuItems };
 
     return (
       <Grid item xs={12} md={12}>
@@ -83,8 +84,8 @@ const AnalysisHome = () => {
             >
               <AnalysisForm
                 selectedStock={selectedStock}
-                apiEndpoint={'analyze'}
-                componentName={'Chart With Stock'}
+                apiEndpoint={"analyze"}
+                componentName={"Chart With Stock"}
                 onStockSelect={handleStockSelect}
                 onAnalysisRequest={handleNewExpertChatMessage}
                 menu={menu}
@@ -112,10 +113,11 @@ const AnalysisHome = () => {
     );
   };
 
-
-
   const ExpertChat = () => {
-    const [expertMenu, setExpertMenu] = useState({ menuName: 'Expert', menuItems: [] });
+    const [expertMenu, setExpertMenu] = useState({
+      menuName: "Expert",
+      menuItems: [],
+    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -129,7 +131,7 @@ const AnalysisHome = () => {
               key: expertItem.name,
               label: `${expertItem.name} (${expertItem.expertise})`,
             }));
-            setExpertMenu({ menuName: 'Expert', menuItems: expertMenuItems });
+            setExpertMenu({ menuName: "Expert", menuItems: expertMenuItems });
           }
         } catch (e) {
           console.error("Error fetching expert names", e);
@@ -138,7 +140,7 @@ const AnalysisHome = () => {
           setLoading(false);
         }
       };
-  
+
       getExpertMenuItems();
     }, []);
 
@@ -160,8 +162,8 @@ const AnalysisHome = () => {
             >
               <AnalysisForm
                 selectedStock={selectedStock}
-                componentName={'Chart With Analyst Expert'}
-                apiEndpoint={'AIAdvisor'}
+                componentName={"Chart With Analyst Expert"}
+                apiEndpoint={"AIAdvisor"}
                 onStockSelect={handleStockSelect}
                 onAnalysisRequest={handleNewExpertChatMessage}
                 menu={expertMenu}
@@ -208,6 +210,39 @@ const AnalysisHome = () => {
     );
   };
 
+  const ComprehensieAnalysis = () => {
+    const [data, setData] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+      const getComprehensiveData = async () => {
+        try {
+          setLoading(true);
+          const response = await axios.get(`${API_URL}/api/AIAnalysis`);
+          if (response.data) {
+            setData(response.data);
+          }
+        } catch (e) {
+          console.error("Error fetching comprehensive data", e);
+          setError("Failed to load comprehensive data");
+        } finally {
+          setLoading(false);
+        }
+      };
+      getComprehensiveData();
+    }, []);
+
+    if (loading) return <div>Loading data...</div>;
+    if (error) return <div>Error: {error}</div>;
+
+    return (
+      <Grid item xs={12}>
+        {data}
+      </Grid>
+    );
+  };
+
   const renderActiveComponent = () => {
     switch (activeCategory) {
       case "chatStock":
@@ -218,6 +253,8 @@ const AnalysisHome = () => {
         return <InteractiveAI />;
       case "chatAnalyist":
         return <ExpertChat />;
+      case "AIAnalysis":
+          return <ComprehensieAnalysis />;  
       default:
         return null;
     }
