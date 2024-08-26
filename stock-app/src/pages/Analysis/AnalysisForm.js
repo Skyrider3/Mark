@@ -124,7 +124,7 @@ const AnalysisForm = ({
             }}
           >
             <Button variant="contained" component="label" color="secondary">
-              Upload File
+              Upload Supporting File
               <input
                 type="file"
                 hidden
