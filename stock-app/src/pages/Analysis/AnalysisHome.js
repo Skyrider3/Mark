@@ -127,7 +127,7 @@ const AnalysisHome = () => {
           if (response.data) {
             const expertMenuItems = response.data.gurus.map((expertItem) => ({
               key: expertItem.name,
-              value: `${expertItem.name} (${expertItem.expertise})`,
+              label: `${expertItem.name} (${expertItem.expertise})`,
             }));
             setExpertMenu({ menuName: 'Expert', menuItems: expertMenuItems });
           }
