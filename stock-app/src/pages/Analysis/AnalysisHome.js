@@ -219,7 +219,9 @@ const AnalysisHome = () => {
       const getComprehensiveData = async () => {
         try {
           setLoading(true);
-          const response = await axios.get(`${API_URL}/api/AIAnalysis`);
+          const formData = new FormData();
+          formData.append("stock", selectedStock);
+          const response = await axios.post(`${API_URL}/api/AIAnalysis`, formData);
           if (response.data) {
             setData(response.data);
           }
