@@ -137,7 +137,8 @@ const AnalysisForm = ({
               disabled={loading}
               startIcon={loading ? <CircularProgress size={20} /> : null}
             >
-              {loading ? "Analyzing..." : "Analyze"}
+              Chat
+              {/* {loading ? "Analyzing..." : "Chat"} */}
             </Button>
           </Box>
         </form>
