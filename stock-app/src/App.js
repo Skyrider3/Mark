@@ -7,6 +7,7 @@ import AnalysisHome from "./pages/Analysis/AnalysisHome";
 import './index.css';
 import LandingPage from "./pages/Landing/LandingPage";
 import NewsPage from "./pages/News/NewsPage";
+import DashboardPage from "./pages/DashBoard/DashBoardPage";
 
 const theme = createTheme({
   palette: {
@@ -43,6 +44,7 @@ function App() {
             <Route path="/" element={<AnalysisHome />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/news" element={<NewsPage />} />
+            <Route path="/dashBoard" element={<DashboardPage />} />
           </Routes>
         </Router>
       </ThemeProvider>
