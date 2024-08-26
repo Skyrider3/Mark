@@ -44,6 +44,7 @@ const AnalysisForm = ({
     const formData = new FormData();
     formData.append("request", `${analysisType} analysis: ${request}`);
     formData.append("stock", selectedStock);
+    formData.append("type", analysisType);
     if (file) {
       formData.append("file", file);
     }
