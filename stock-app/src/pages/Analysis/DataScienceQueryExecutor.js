@@ -44,7 +44,7 @@ const DataScienceQueryExecutor = () => {
 
     try {
       const response = await axios.post(
-        `${API_URL}/api/analyze`,
+        `${API_URL}/api/dataanalyzer`,
         { query },
         {
           headers: {
