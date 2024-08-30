@@ -170,24 +170,10 @@ const DataScienceQueryExecutor = () => {
               <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
                 {analysisResult.result}
               </Typography>
-              <p>Visual Plot:</p>
-              <img
-                src={analysis}
-                alt="Analysis plot"
-                style={{ maxWidth: "100%", height: "auto", marginTop: "10px" }}
-              />
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={loading}
-                sx={{ mt: 2 }}
-              >
-                Save Pattern
-              </Button>
+              
               {analysisResult.plot && (
                 <>
-                  <p>Image:</p>
+                  <p>Visual Plot:</p>
                   <img
                     src={`data:image/png;base64,${analysisResult.plot}`}
                     alt="Analysis plot"
@@ -199,6 +185,15 @@ const DataScienceQueryExecutor = () => {
                   />
                 </>
               )}
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+                sx={{ mt: 2 }}
+              >
+                Save Pattern
+              </Button>
             </CardContent>
           </Card>
         )}
