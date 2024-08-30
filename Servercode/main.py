@@ -1,8 +1,14 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Request, File, UploadFile, Form, Query
+from fastapi import FastAPI, Depends, HTTPException, status, Request, File, UploadFile, Form, Query, Body
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 import requests 
 import json
+import yfinance as yf
+import io
+import re
+import base64
+import logging
+import matplotlib.pyplot as plt
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
@@ -15,25 +21,17 @@ from pydantic import BaseModel
 from typing import List, Optional
 import pandas as pd
 import yfinance as yf
-import io
-import re
 from io import StringIO
-import json
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 import numpy as np
 from textblob import TextBlob
-import logging
 from openai import OpenAI
-import base64
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from fastapi.params import Query as FastAPIQuery
-import requests 
-import json
-import yfinance as yf
+
 
 
 @asynccontextmanager
@@ -127,6 +125,11 @@ class UserCreate(BaseModel):
 
 class Query(BaseModel):
     query: str
+
+# class AdvisorStockData(BaseModel):
+#     stock: str
+#     type: str
+#     request: str
 
 class DataScienceQuestion(BaseModel):
     question: str
@@ -387,8 +390,24 @@ async def compare_stocks(
 
     return comparison_data
 
+# main code
+# @app.post("/analyze")
+# async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(None)):
+#     try:
+#         if file:
+#             contents = await file.read()
+#             data = pd.read_csv(StringIO(contents.decode("utf-8")))
+#         else:
+#             end_date = datetime.now()
+#             start_date = end_date - timedelta(days=30)
+#             data = yf.download("TSLA", start=start_date, end=end_date)
 
-@app.post("/analyze")
+#         analysis_result = analyze_stock_data(data, request)
+#         return {"result": analysis_result}
+#     except Exception as e:
+#         raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/analyze")
 async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(None)):
     try:
         if file:
@@ -406,8 +425,8 @@ async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(No
 
 
 
-@app.post("/api/analyze")
-async def analyze(query: Query):
+@app.post("/api/dataanalyzer")
+async def analyzer(query: Query):
     try:
         # Step 1: Process Query
         #logger.debug(f"Processing query: {query.query}")
@@ -435,6 +454,17 @@ async def analyze(query: Query):
             "generated_code": generated_code if 'generated_code' in locals() else None,
             "analysis_result": None
         }
+
+# Displayed output #################
+# {
+#     "processed_question": "Data Science Question: What is the distribution of trading volume across different days of the week for a specific stock, and which day of the week typically experiences the highest trading volume based on historical data?",
+#     "generated_code": "import yfinance as yf\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\n\n# Define the stock symbol and timeframe\nstock_symbol = 'AAPL'  # You can change this to any stock symbol of your choice\nstock_data = yf.Ticker(stock_symbol)\n\n# Fetch historical stock data\nhistorical_data = stock_data.history(period=\"1y\")\nhistorical_data['Day_of_Week'] = historical_data.index.dayofweek  # Adding a column for day of the week (0 = Monday, 6 = Sunday)\n\n# Calculate average trading volume for each day of the week\navg_volume_by_day = historical_data.groupby('Day_of_Week')['Volume'].mean()\n\n# Create a bar plot to visualize the distribution of trading volume across different days of the week\nplt.figure(figsize=(10, 6))\nplt.bar(avg_volume_by_day.index, avg_volume_by_day.values, color='skyblue')\nplt.xticks(np.arange(7), ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])\nplt.xlabel('Day of the Week')\nplt.ylabel('Average Trading Volume')\nplt.title('Average Trading Volume by Day of the Week for ' + stock_symbol)\nplt.show()\n\n# Identify the day of the week with the highest average trading volume\nmax_volume_day = avg_volume_by_day.idxmax()\nprint(f\"The day of the week with the highest average trading volume for {stock_symbol} is: {max_volume_day}\")\n",
+#     "analysis_result": {
+#         "result": "The day of the week with the highest average trading volume for AAPL is: 4"
+#     }
+# }
+
+
 
 async def process_query(query: str):
     prompt = f"""
@@ -521,6 +551,10 @@ async def execute_analysis(code: str):
         raise Exception(f"Error executing analysis: {str(e)}")
     
 
+
+
+
+
 @app.post("/api/stock-chat")
 async def stock_chat(query: Query):
     prompt = f"""
@@ -545,7 +579,7 @@ async def stock_chat(query: Query):
 
 ## functionality for AI Assistant 
 
-@app.get("/api/financial-gurus")
+@app.get("/api/financialgurus")
 async def get_financial_gurus():
     """
     Returns a list of financial gurus.
@@ -562,16 +596,123 @@ async def get_financial_gurus():
 
     return {"gurus": gurus}
 
+# @app.post("/api/AIAnalysisfull")
+# def llama3(stock : str = Form(...)) :
+#     url = "http://localhost:11434/api/chat"
+#     # Fetch historical data (e.g., 5 years)
+#     stock_data = yf.download(stock, period="5y")
+
+#     prompt = f"""
+#         Here is the historical stock data for {stock}: {stock_data.to_string()}
+#         **Fundamental Analysis Report**
+
+#         **Industry Overview:**
+#         Please provide a brief overview of the [industry/sector] industry, including its current trends, challenges, and outlook.
+
+#         **Market Position:**
+#         What is the company's current market position within the [industry/sector], and how does it compare to its competitors?
+
+#         **Competitive Advantages:**
+#         What are the company's unique competitive advantages, and how do they differentiate themselves from their competitors?
+
+#         **Economic Moat Analysis:**
+#         What are the company's sustainable competitive advantages that protect its market share and profitability?
+
+#         **Company Financials:**
+#         Please provide a detailed analysis of the company's financial performance, including:
+
+#         * Revenue and profit trends: What are the company's revenue and profit growth rates over the past 5 years, and what are the main drivers of this growth? **Also, calculate the average revenue growth rate over this period.** 
+#         * Balance sheet health: What is the company's current financial health, including its debt-to-equity ratio, cash reserves, and other key metrics?
+#         * Cash flow analysis: How does the company generate cash, and what are its cash flow trends over the past 5 years?
+#         * Key financial ratios: What are the company's key financial ratios, such as P/E, P/B, and Debt-to-Equity, and how do they compare to industry averages?
+
+#         **Company Analysis:**
+#         Please provide an analysis of the company's management quality and track record, corporate governance, business model sustainability, and product/service pipeline.
+
+#         **Risk Analysis:**
+#         What are the company's main risks, including market risks, operational risks, financial risks, and regulatory risks?
+#         **Additionally, analyze the historical xvolatility of the company's stock price to assess its risk profile.**
+
+#         **Future Growth Analysis:**
+#         What are the company's opportunities for future growth, including market expansion opportunities, potential for innovation, strategic partnerships or acquisitions, and long-term industry trends?
+
+#         **Quarterly/Seasonal Monitoring Checklist:**
+#         Please provide a quarterly/seasonal monitoring checklist that includes key metrics to track, such as:
+
+#         * Revenue growth rate
+#         * Profit margins
+#         * Customer acquisition costs
+#         * Inventory turnover
+#         * Debt levels
+#         * Cash reserves
+#         * R&D spending
+#         * Market share changes
+
+#         """
+#     # print ("for this {company} do the {agentName} analysis and give me a report in this format" + prompt)
+#     data = {
+#         "model": "llama3",
+#         "messages": [
+#             {
+#                 "role": "user",
+#                 "content": f"for this {stock} do the analysis and give me a report in this format" + prompt
+#             }
+#         ],
+#         "stream": False
+#     }
+#     headers = {
+#         'Content-Type': 'application/json'
+#     }
+
+#     response = requests.post(url, headers=headers, json=data)
+
+#     # print(response)
+
+#     return(response.json() ['message'] ['content'])
 
 
-@app.post("/api/AI-assistant")
-def llama3(company) :
+@app.post("/api/AIAdvisor")
+async def llama3(stock: str = Form(...), type: str = Form(...), request: str = Form(...)):
     url = "http://localhost:11434/api/chat"
     # Fetch historical data (e.g., 5 years)
-    stock_data = yf.download(company, period="5y")
+    stockname =stock
+    Advisorname = type
+    request = request
+    stock_data = yf.download(stock, period="5y")
 
     prompt = f"""
-        Here is the historical stock data for {company}: {stock_data.to_string()}
+        Here is the historical stock data for {stockname}: {stock_data.to_string()}
+        """
+    # print ("for this {company} do the {agentName} analysis and give me a report in this format" + prompt)
+    data = {
+        "model": "llama3",
+        "messages": [
+            {
+                "role": "user",
+                "content": f"For this {stockname} do the {Advisorname} analysis,  Give a comprehensive and complete analysis using {Advisorname} investing methods" + prompt
+            }
+        ],
+        "stream": False
+    }
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+
+    # print(response)
+
+    return(response.json() ['message'] ['content'])
+
+
+@app.post("/api/AIAnalysis")
+def parse_analysis_report(stock : str = Form(...)):
+    url = "http://localhost:11434/api/chat"
+    # Fetch historical data (e.g., 5 years)
+    stock_data = yf.download(stock, period="5y")
+
+    prompt = f"""
+        Here is the historical stock data for {stock}: {stock_data.to_string()}
         **Fundamental Analysis Report**
 
         **Industry Overview:**
@@ -599,7 +740,7 @@ def llama3(company) :
 
         **Risk Analysis:**
         What are the company's main risks, including market risks, operational risks, financial risks, and regulatory risks?
-        **Additionally, analyze the historical volatility of the company's stock price to assess its risk profile.**
+        **Additionally, analyze the historical xvolatility of the company's stock price to assess its risk profile.**
 
         **Future Growth Analysis:**
         What are the company's opportunities for future growth, including market expansion opportunities, potential for innovation, strategic partnerships or acquisitions, and long-term industry trends?
@@ -623,7 +764,7 @@ def llama3(company) :
         "messages": [
             {
                 "role": "user",
-                "content": f"for this {company} do the analysis and give me a report in this format" + prompt
+                "content": f"for this {stock} do the analysis and give me a report in this format" + prompt
             }
         ],
         "stream": False
@@ -634,45 +775,21 @@ def llama3(company) :
 
     response = requests.post(url, headers=headers, json=data)
 
-    # print(response)
+    report_text = response.json() ['message'] ['content']
 
-    return(response.json() ['message'] ['content'])
+    analysis_result = {}
+    sections = re.split(r'\*\*(.+?)\*\*\n', report_text)  # Split by double asterisks (**)
 
-                                     
+    # The first element will be empty or contain the historical data, so we skip it
+    for i in range(1, len(sections), 2):
+        heading = sections[i].strip()
+        heading = heading.replace("*", "")
+        content = sections[i + 1].strip()
+        analysis_result[heading] = content
 
-# response = llama3("AAPL","warren buffet")
-# print(response)
+    return analysis_result
 
-@app.post("/api/AI-advisor")
-def llama3(company, agentName) :
-    url = "http://localhost:11434/api/chat"
-    # Fetch historical data (e.g., 5 years)
-    stock_data = yf.download(company, period="5y")
 
-    prompt = f"""
-        Here is the historical stock data for {company}: {stock_data.to_string()}
-        Give a comprehensive and complete analysis with principles and fundamental analysis usin {agentName} methods
-        """
-    # print ("for this {company} do the {agentName} analysis and give me a report in this format" + prompt)
-    data = {
-        "model": "llama3",
-        "messages": [
-            {
-                "role": "user",
-                "content": f"for this {company} do the {agentName} analysis and give me a report in this format" + prompt
-            }
-        ],
-        "stream": False
-    }
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
-    response = requests.post(url, headers=headers, json=data)
-
-    # print(response)
-
-    return(response.json() ['message'] ['content'])
 
 
 if __name__ == "__main__":
