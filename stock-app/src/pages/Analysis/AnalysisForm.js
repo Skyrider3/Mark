@@ -24,6 +24,7 @@ const AnalysisForm = ({
   apiEndpoint,
   componentName,
   menu,
+  exampleQuery,
 }) => {
   const [request, setRequest] = useState("");
   const [file, setFile] = useState(null);
@@ -115,6 +116,7 @@ const AnalysisForm = ({
             placeholder="Enter your chat query here..."
             margin="normal"
           />
+          <p style={{ color: "grey" }}>Example: {exampleQuery}</p>
           <Box
             sx={{
               display: "flex",

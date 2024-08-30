@@ -14,7 +14,7 @@ const API_URL = "http://localhost:8000";
 const AnalysisHome = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [selectedStock, setSelectedStock] = useState("AAPL");
+  const [selectedStock, setSelectedStock] = useState("TSLA");
   const [stockChatHistory, setStockChatHistory] = useState([]);
   const [expertChatHistory, setExpertChatHistory] = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
@@ -89,6 +89,7 @@ const AnalysisHome = () => {
                 onStockSelect={handleStockSelect}
                 onAnalysisRequest={handleNewExpertChatMessage}
                 menu={menu}
+                exampleQuery={"Give me current trend from the stock?"}
               />
             </Paper>
           </Grid>
@@ -167,6 +168,7 @@ const AnalysisHome = () => {
                 onStockSelect={handleStockSelect}
                 onAnalysisRequest={handleNewExpertChatMessage}
                 menu={expertMenu}
+                exampleQuery={"Give me your analysis on Stock?"}
               />
             </Paper>
           </Grid>
@@ -286,7 +288,7 @@ const AnalysisHome = () => {
                 <Typography variant="h6" gutterBottom>
                   Stock Chart
                 </Typography>
-                <StockChart stock={selectedStock} />
+                <StockChart stock={selectedStock} onStockChange={handleStockSelect}/>
               </Paper>
             </Grid>
 
