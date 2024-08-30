@@ -1,10 +1,28 @@
 import React, { useState, useRef, useEffect } from "react";
 import ptlogo from "../image/ptlogo.png";
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        toggleSidebar(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [toggleSidebar]);
+
+  if (!isOpen) return null;
+
   return (
     <div
+      ref={menuRef}
       className={`fixed top-0 left-0 h-full w-64 bg-black text-white transform ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       } transition-transform duration-300 ease-in-out z-20`}
@@ -48,11 +66,23 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <SidebarItem icon="journal" text="Journal" path="/journal" />
           <div className="border-t border-gray-700 my-4"></div>
           <h3 className="text-lg font-semibold mb-2">You</h3>
-          <SidebarItem icon="manage-alerts" text="Manage Alerts" path="/manage-alerts" />
+          <SidebarItem
+            icon="manage-alerts"
+            text="Manage Alerts"
+            path="/manage-alerts"
+          />
           <SidebarItem icon="reminders" text="Reminders" path="/reminders" />
-          <SidebarItem icon="favourite-stocks" text="Favourite Stocks" path="/favorite-stocks" />
+          <SidebarItem
+            icon="favourite-stocks"
+            text="Favourite Stocks"
+            path="/favorite-stocks"
+          />
           <SidebarItem icon="notes" text="Notes" path="/notes" />
-          <SidebarItem icon="saved-patterns" text="Saved Patterns" path="/saved-patterns" />
+          <SidebarItem
+            icon="saved-patterns"
+            text="Saved Patterns"
+            path="/saved-patterns"
+          />
         </nav>
       </div>
     </div>
@@ -151,11 +181,14 @@ const SidebarItem = ({ icon, text, path }) => {
   };
 
   return (
-    <a href="#" className="flex items-center py-2 px-4 hover:bg-gray-800"
-    onClick={(e) => {
-      e.preventDefault();
-      navigate(path);
-    }}>
+    <a
+      href="#"
+      className="flex items-center py-2 px-4 hover:bg-gray-800"
+      onClick={(e) => {
+        e.preventDefault();
+        navigate(path);
+      }}
+    >
       <svg
         className="w-6 h-6 mr-4"
         fill="none"
@@ -203,10 +236,10 @@ const UserMenu = ({ isOpen, toggleMenu }) => {
           <span className="text-white font-semibold">Aditya Inampudi</span>
         </div>
       </div>
-      <MenuItem icon="settings" text="Settings & privacy" path="#"/>
+      <MenuItem icon="settings" text="Settings & privacy" path="#" />
       {/* <MenuItem icon="display" text="Display & accessibility" /> */}
-      <MenuItem icon="feedback" text="Give feedback"  path="#"/>
-      <MenuItem icon="help" text="Help & support"  path="#"/>
+      <MenuItem icon="feedback" text="Give feedback" path="#" />
+      <MenuItem icon="help" text="Help & support" path="#" />
       <MenuItem icon="logout" text="Log Out" path="/login" />
     </div>
   );
