@@ -496,7 +496,7 @@ async def generate_code(question: str):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo-0125",
             messages=[
-                {"role": "system", "content": "You are a data science expert specializing in stock market analysis. Generate Python code to answer the given question using yfinance for data retrieval."},
+                {"role": "system", "content": "You are a data science expert specializing in stock market analysis. Generate Python code to answer the given question using yfinance for data retrieval. give me only the code "},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -546,8 +546,6 @@ async def execute_analysis(code: str):
         else:
             return {"result": text_output}
     except Exception as e:
-        #logger.error(f"Error in execute_analysis: {str(e)}")
-        #logger.error(f"Problematic code:\n{code}")
         raise Exception(f"Error executing analysis: {str(e)}")
     
 
@@ -596,58 +594,19 @@ async def get_financial_gurus():
 
     return {"gurus": gurus}
 
-# @app.post("/api/AIAnalysisfull")
-# def llama3(stock : str = Form(...)) :
+
+
+# @app.post("/api/AIAdvisor")
+# async def llama3(stock: str = Form(...), type: str = Form(...), request: str = Form(...)):
 #     url = "http://localhost:11434/api/chat"
 #     # Fetch historical data (e.g., 5 years)
+#     stockname =stock
+#     Advisorname = type
+#     request = request
 #     stock_data = yf.download(stock, period="5y")
 
 #     prompt = f"""
-#         Here is the historical stock data for {stock}: {stock_data.to_string()}
-#         **Fundamental Analysis Report**
-
-#         **Industry Overview:**
-#         Please provide a brief overview of the [industry/sector] industry, including its current trends, challenges, and outlook.
-
-#         **Market Position:**
-#         What is the company's current market position within the [industry/sector], and how does it compare to its competitors?
-
-#         **Competitive Advantages:**
-#         What are the company's unique competitive advantages, and how do they differentiate themselves from their competitors?
-
-#         **Economic Moat Analysis:**
-#         What are the company's sustainable competitive advantages that protect its market share and profitability?
-
-#         **Company Financials:**
-#         Please provide a detailed analysis of the company's financial performance, including:
-
-#         * Revenue and profit trends: What are the company's revenue and profit growth rates over the past 5 years, and what are the main drivers of this growth? **Also, calculate the average revenue growth rate over this period.** 
-#         * Balance sheet health: What is the company's current financial health, including its debt-to-equity ratio, cash reserves, and other key metrics?
-#         * Cash flow analysis: How does the company generate cash, and what are its cash flow trends over the past 5 years?
-#         * Key financial ratios: What are the company's key financial ratios, such as P/E, P/B, and Debt-to-Equity, and how do they compare to industry averages?
-
-#         **Company Analysis:**
-#         Please provide an analysis of the company's management quality and track record, corporate governance, business model sustainability, and product/service pipeline.
-
-#         **Risk Analysis:**
-#         What are the company's main risks, including market risks, operational risks, financial risks, and regulatory risks?
-#         **Additionally, analyze the historical xvolatility of the company's stock price to assess its risk profile.**
-
-#         **Future Growth Analysis:**
-#         What are the company's opportunities for future growth, including market expansion opportunities, potential for innovation, strategic partnerships or acquisitions, and long-term industry trends?
-
-#         **Quarterly/Seasonal Monitoring Checklist:**
-#         Please provide a quarterly/seasonal monitoring checklist that includes key metrics to track, such as:
-
-#         * Revenue growth rate
-#         * Profit margins
-#         * Customer acquisition costs
-#         * Inventory turnover
-#         * Debt levels
-#         * Cash reserves
-#         * R&D spending
-#         * Market share changes
-
+#         Here is the historical stock data for {stockname}: {stock_data.to_string()}
 #         """
 #     # print ("for this {company} do the {agentName} analysis and give me a report in this format" + prompt)
 #     data = {
@@ -655,7 +614,7 @@ async def get_financial_gurus():
 #         "messages": [
 #             {
 #                 "role": "user",
-#                 "content": f"for this {stock} do the analysis and give me a report in this format" + prompt
+#                 "content": f"For this {stockname} do the {Advisorname} analysis,  Give a comprehensive and complete analysis using {Advisorname} investing methods" + prompt
 #             }
 #         ],
 #         "stream": False
@@ -668,41 +627,132 @@ async def get_financial_gurus():
 
 #     # print(response)
 
-#     return(response.json() ['message'] ['content'])
+#     #return(response.json() ['message'] ['content'])
+#     return {"result": response.json() ['message'] ['content']}
 
+def get_guru_prompt_template(guru_name: str, stockname: str, stock_data: str) -> str:
+    if guru_name == "Warren Buffett":
+        return f"""
+        Here is the historical stock data for {stockname}: {stock_data}
+        
+        **Warren Buffett's Value Investing Analysis**
+
+        **Industry Overview:**
+        Please provide an overview of the {stockname} industry, focusing on long-term trends and economic moats.
+
+        **Intrinsic Value Estimation:**
+        Calculate the intrinsic value of {stockname} based on discounted cash flow analysis and compare it to the current market price.
+
+        **Management Evaluation:**
+        Analyze the quality and integrity of {stockname}'s management team, focusing on their track record and alignment with shareholders.
+
+        **Risk and Margin of Safety:**
+        Identify potential risks and assess the margin of safety in the current stock price.
+        """
+
+    elif guru_name == "Charlie Munger":
+        return f"""
+        Here is the historical stock data for {stockname}: {stock_data}
+        
+        **Charlie Munger's Multi-Disciplinary Approach**
+
+        **Industry and Competitive Analysis:**
+        Analyze the {stockname} industry using mental models, focusing on competitive dynamics and behavioral factors.
+
+        **Management and Corporate Culture:**
+        Evaluate {stockname}'s management team and corporate culture, considering psychological biases and incentives.
+
+        **Investment Risks:**
+        Discuss potential risks, including behavioral and psychological factors that might affect the stock's performance.
+        """
+
+    elif guru_name == "Benjamin Graham":
+        return f"""
+        Here is the historical stock data for {stockname}: {stock_data}
+        
+        **Benjamin Graham's Security Analysis**
+
+        **Financial Stability and Ratios:**
+        Assess the financial stability of {stockname} using key ratios like current ratio, debt-to-equity, and earnings stability.
+
+        **Valuation and Margin of Safety:**
+        Evaluate the stock's valuation based on earnings, book value, and provide a margin of safety analysis.
+
+        **Investment Criteria:**
+        Determine whether {stockname} meets Graham's criteria for a defensive or enterprising investment.
+        """
+
+    elif guru_name == "Peter Lynch":
+        return f"""
+        Here is the historical stock data for {stockname}: {stock_data}
+        
+        **Peter Lynch's Growth Investing Analysis**
+
+        **Growth Potential:**
+        Analyze {stockname}'s growth potential, focusing on earnings growth, product pipeline, and market expansion opportunities.
+
+        **Company Fundamentals:**
+        Evaluate the fundamentals of {stockname}, including P/E ratio, PEG ratio, and revenue growth.
+
+        **Risk Factors:**
+        Identify key risk factors that could impact the company's growth trajectory.
+        """
+
+    elif guru_name == "Ray Dalio":
+        return f"""
+        Here is the historical stock data for {stockname}: {stock_data}
+        
+        **Ray Dalio's Macroeconomic Analysis**
+
+        **Economic Indicators:**
+        Analyze {stockname} in the context of macroeconomic trends, including interest rates, inflation, and GDP growth.
+
+        **Global Risks:**
+        Identify global risks and geopolitical factors that could affect {stockname}.
+
+        **Diversification and Hedging:**
+        Discuss how {stockname} fits into a diversified portfolio and potential hedging strategies.
+        """
+
+    else:
+        return f"Sorry, no analysis template available for {guru_name}."
+    
 
 @app.post("/api/AIAdvisor")
 async def llama3(stock: str = Form(...), type: str = Form(...), request: str = Form(...)):
     url = "http://localhost:11434/api/chat"
-    # Fetch historical data (e.g., 5 years)
-    stockname =stock
+    
+    stockname = stock
     Advisorname = type
-    request = request
-    stock_data = yf.download(stock, period="5y")
+    
+    # Fetch historical data (e.g., 5 years)
+    stock_data = yf.download(stockname, period="5y").to_string()
 
-    prompt = f"""
-        Here is the historical stock data for {stockname}: {stock_data.to_string()}
-        """
-    # print ("for this {company} do the {agentName} analysis and give me a report in this format" + prompt)
+    # Get the appropriate prompt template based on the guru
+    prompt = get_guru_prompt_template(Advisorname, stockname, stock_data)
+
     data = {
         "model": "llama3",
         "messages": [
             {
                 "role": "user",
-                "content": f"For this {stockname} do the {Advisorname} analysis,  Give a comprehensive and complete analysis using {Advisorname} investing methods" + prompt
+                "content": f"Perform an analysis based on {Advisorname}'s investing style: {prompt}"
             }
         ],
         "stream": False
     }
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
+    
+    headers = {'Content-Type': 'application/json'}
     response = requests.post(url, headers=headers, json=data)
+    
+    # Parse the AI-generated report (optional, depending on your needs)
+    report_text = response.json()['message']['content']
 
-    # print(response)
+    # You can return the report directly or further process it
+    return {"result": report_text}
 
-    return(response.json() ['message'] ['content'])
+
+
 
 
 @app.post("/api/AIAnalysis")
@@ -788,8 +838,6 @@ def parse_analysis_report(stock : str = Form(...)):
         analysis_result[heading] = content
 
     return analysis_result
-
-
 
 
 if __name__ == "__main__":
