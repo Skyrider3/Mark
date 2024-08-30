@@ -32,7 +32,14 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from fastapi.params import Query as FastAPIQuery
 
+import contextlib
+from functools import partial
+import asyncio
+import matplotlib
+matplotlib.use('Agg')
 
+# import matplotlib as mpl
+# mpl.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Helvetica', 'Arial']
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -390,22 +397,6 @@ async def compare_stocks(
 
     return comparison_data
 
-# main code
-# @app.post("/analyze")
-# async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(None)):
-#     try:
-#         if file:
-#             contents = await file.read()
-#             data = pd.read_csv(StringIO(contents.decode("utf-8")))
-#         else:
-#             end_date = datetime.now()
-#             start_date = end_date - timedelta(days=30)
-#             data = yf.download("TSLA", start=start_date, end=end_date)
-
-#         analysis_result = analyze_stock_data(data, request)
-#         return {"result": analysis_result}
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/analyze")
 async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(None)):
@@ -507,8 +498,7 @@ async def generate_code(question: str):
     except Exception as e:
         #logger.error(f"Error in generate_code: {str(e)}")
         raise Exception(f"Error generating code: {str(e)}")
-
-
+    
 async def execute_analysis(code: str):
     try:
         safe_globals = {
@@ -522,34 +512,38 @@ async def execute_analysis(code: str):
             "r2_score": r2_score
         }
         safe_locals = {}
-
-        # Add a custom print function to capture output
-        output = []
+        
+        # Capture stdout and custom print output
+        output = io.StringIO()
         def custom_print(*args, **kwargs):
-            output.append(' '.join(map(str, args)))
+            print(*args, file=output, **kwargs)
         safe_globals['print'] = custom_print
-
-        # Execute the code
-        exec(code, safe_globals, safe_locals)
-
-        # Join captured output
-        text_output = '\n'.join(output)
-
+        
+        # Execute the code asynchronously
+        with contextlib.redirect_stdout(output):
+            await asyncio.to_thread(partial(exec, code, safe_globals, safe_locals))
+        
+        # Get captured output
+        text_output = output.getvalue()
+        
         # Check if a plot was created
         if plt.get_fignums():
+            print("Plot detected. Encoding...")
             buf = io.BytesIO()
-            plt.savefig(buf, format='png')
+            plt.savefig(buf, format='png', dpi=300, bbox_inches='tight')
             buf.seek(0)
-            plot_data = base64.b64encode(buf.getvalue()).decode()
+            plot_data = f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}"
+            #plot_data = base64.b64encode(buf.getvalue()).decode()
             plt.close('all')  # Close all plots to free memory
+            # print(f"Plot encoded. Length: {len(plot_data)}")
             return {"result": text_output, "plot": plot_data}
         else:
+            print("No plot detected.")
             return {"result": text_output}
     except Exception as e:
-        raise Exception(f"Error executing analysis: {str(e)}")
-    
-
-
+        error_msg = f"Error executing analysis: {str(e)}"
+        print(error_msg)
+        return {"result": error_msg, "error": True}
 
 
 
@@ -594,41 +588,6 @@ async def get_financial_gurus():
 
     return {"gurus": gurus}
 
-
-
-# @app.post("/api/AIAdvisor")
-# async def llama3(stock: str = Form(...), type: str = Form(...), request: str = Form(...)):
-#     url = "http://localhost:11434/api/chat"
-#     # Fetch historical data (e.g., 5 years)
-#     stockname =stock
-#     Advisorname = type
-#     request = request
-#     stock_data = yf.download(stock, period="5y")
-
-#     prompt = f"""
-#         Here is the historical stock data for {stockname}: {stock_data.to_string()}
-#         """
-#     # print ("for this {company} do the {agentName} analysis and give me a report in this format" + prompt)
-#     data = {
-#         "model": "llama3",
-#         "messages": [
-#             {
-#                 "role": "user",
-#                 "content": f"For this {stockname} do the {Advisorname} analysis,  Give a comprehensive and complete analysis using {Advisorname} investing methods" + prompt
-#             }
-#         ],
-#         "stream": False
-#     }
-#     headers = {
-#         'Content-Type': 'application/json'
-#     }
-
-#     response = requests.post(url, headers=headers, json=data)
-
-#     # print(response)
-
-#     #return(response.json() ['message'] ['content'])
-#     return {"result": response.json() ['message'] ['content']}
 
 def get_guru_prompt_template(guru_name: str, stockname: str, stock_data: str) -> str:
     if guru_name == "Warren Buffett":
