@@ -346,7 +346,7 @@ const NavBar = () => {
               />
             </svg>
           </button>
-          <a href="/" className="flex items-center">
+          <a href="/dashboard" className="flex items-center">
             <svg
               className="w-8 h-8 mr-2"
               viewBox="0 0 24 24"
