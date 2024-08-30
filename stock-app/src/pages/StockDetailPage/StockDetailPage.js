@@ -6,72 +6,79 @@ const StockDetailPage = () => {
   const { symbol } = useParams();
   const [stockData, setStockData] = useState(null);
   const [chartData, setChartData] = useState([]);
-  const [newsData, setNewsData] = useState([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState('1month');
   const [showVolume, setShowVolume] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const API_KEY = 'L3A8WESORA0JPFCL'; // Replace with your actual API key
+  const API_KEY = 'Zf9t1UFh13YSJYeNqENgWOqEnOAF0fZg'; // Replace with your Financial Modeling Prep API key
 
   useEffect(() => {
     const fetchStockData = async () => {
       try {
-        const response = await fetch(`https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=${API_KEY}`);
-        const data = await response.json();
-        setStockData(data);
-      } catch (error) {
-        console.error('Error fetching stock data:', error);
-      }
-    };
+        setLoading(true);
+        setError(null);
 
-    const fetchChartData = async () => {
-      try {
-        const response = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}`);
-        const data = await response.json();
-        const timeSeriesData = data['Time Series (Daily)'];
-        const formattedData = Object.entries(timeSeriesData).map(([date, values]) => ({
-          date,
-          open: parseFloat(values['1. open']),
-          high: parseFloat(values['2. high']),
-          low: parseFloat(values['3. low']),
-          close: parseFloat(values['4. close']),
-          volume: parseInt(values['5. volume'])
+        // Fetch stock data
+        const stockResponse = await fetch(`https://financialmodelingprep.com/api/v3/profile/${symbol}?apikey=${API_KEY}`);
+        const stockResult = await stockResponse.json();
+        
+        if (!stockResponse.ok) {
+          throw new Error('Failed to fetch stock data');
+        }
+
+        if (stockResult.length === 0) {
+          throw new Error('No data available for this stock');
+        }
+
+        setStockData(stockResult[0]);
+
+        // Fetch chart data
+        const chartResponse = await fetch(`https://financialmodelingprep.com/api/v3/historical-price-full/${symbol}?timeseries=${getTimeframeDays(selectedTimeframe)}&apikey=${API_KEY}`);
+        const chartResult = await chartResponse.json();
+
+        if (!chartResponse.ok) {
+          throw new Error('Failed to fetch chart data');
+        }
+
+        const formattedChartData = chartResult.historical.map(item => ({
+          date: item.date,
+          open: item.open,
+          high: item.high,
+          low: item.low,
+          close: item.close,
+          volume: item.volume
         })).reverse();
-        setChartData(formattedData.slice(0, getTimeframeDays(selectedTimeframe)));
-      } catch (error) {
-        console.error('Error fetching chart data:', error);
-      }
-    };
 
-    const fetchNewsData = async () => {
-      try {
-        const response = await fetch(`https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=${symbol}&apikey=${API_KEY}`);
-        const data = await response.json();
-        setNewsData(data.feed.slice(0, 5)); // Get the latest 5 news items
+        setChartData(formattedChartData);
+        setLoading(false);
       } catch (error) {
-        console.error('Error fetching news data:', error);
+        console.error('Error fetching data:', error);
+        setError(error.message || 'An error occurred while fetching data');
+        setLoading(false);
       }
     };
 
     fetchStockData();
-    fetchChartData();
-    fetchNewsData();
   }, [symbol, selectedTimeframe]);
 
   const getTimeframeDays = (timeframe) => {
     switch(timeframe) {
-      case '1week': return 5;
-      case '1month': return 22;
-      case '3months': return 66;
-      case '1year': return 252;
-      default: return 22;
+      case '1month': return 30;
+      case '3months': return 90;
+      case '6months': return 180;
+      case '1year': return 365;
+      default: return 30;
     }
   };
 
-  if (!stockData) return <div>Loading...</div>;
+  if (loading) return <div className="text-center mt-8">Loading...</div>;
+  if (error) return <div className="text-center mt-8 text-red-500">{error}</div>;
+  if (!stockData || chartData.length === 0) return <div className="text-center mt-8">No data available for this stock.</div>;
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">{stockData.Name} ({stockData.Symbol})</h1>
+      <h1 className="text-3xl font-bold mb-4">{stockData.companyName} ({stockData.symbol})</h1>
       
       <div className="mb-4 flex items-center">
         <label htmlFor="timeframe" className="mr-2">Select Timeframe:</label>
@@ -81,9 +88,9 @@ const StockDetailPage = () => {
           onChange={(e) => setSelectedTimeframe(e.target.value)}
           className="border rounded p-2 mr-4"
         >
-          <option value="1week">1 Week</option>
           <option value="1month">1 Month</option>
           <option value="3months">3 Months</option>
+          <option value="6months">6 Months</option>
           <option value="1year">1 Year</option>
         </select>
         
@@ -102,39 +109,24 @@ const StockDetailPage = () => {
         <CandlestickChart data={chartData} showVolume={showVolume} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <div className="bg-white shadow rounded-lg p-4">
           <h2 className="text-xl font-semibold mb-2">Stock Information</h2>
-          <p><strong>Current Price:</strong> ${parseFloat(stockData.Price).toFixed(2)}</p>
-          <p><strong>Volume:</strong> {parseInt(stockData.Volume).toLocaleString()}</p>
-          <p><strong>Market Cap:</strong> ${parseFloat(stockData.MarketCapitalization).toLocaleString()}</p>
-          <p><strong>52 Week High:</strong> ${stockData['52WeekHigh']}</p>
-          <p><strong>52 Week Low:</strong> ${stockData['52WeekLow']}</p>
-          <p><strong>P/E Ratio:</strong> {stockData.PERatio}</p>
-          <p><strong>Dividend Yield:</strong> {stockData.DividendYield}%</p>
+          <p><strong>Current Price:</strong> ${stockData.price.toFixed(2)}</p>
+          <p><strong>Volume:</strong> {stockData.volAvg.toLocaleString()}</p>
+          <p><strong>Market Cap:</strong> ${(stockData.mktCap / 1000000000).toFixed(2)} B</p>
+          <p><strong>52 Week High:</strong> ${stockData.range.split('-')[1].trim()}</p>
+          <p><strong>52 Week Low:</strong> ${stockData.range.split('-')[0].trim()}</p>
         </div>
         <div className="bg-white shadow rounded-lg p-4">
           <h2 className="text-xl font-semibold mb-2">Company Information</h2>
-          <p><strong>Industry:</strong> {stockData.Industry}</p>
-          <p><strong>Sector:</strong> {stockData.Sector}</p>
-          <p><strong>Country:</strong> {stockData.Country}</p>
-          <p><strong>Employees:</strong> {parseInt(stockData.FullTimeEmployees).toLocaleString()}</p>
-          <p><strong>CEO:</strong> {stockData.CEO}</p>
-          <p><strong>Website:</strong> <a href={stockData.Website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{stockData.Website}</a></p>
-          <p><strong>Description:</strong> {stockData.Description.slice(0, 200)}...</p>
+          <p><strong>Industry:</strong> {stockData.industry || 'N/A'}</p>
+          <p><strong>Sector:</strong> {stockData.sector || 'N/A'}</p>
+          <p><strong>Country:</strong> {stockData.country || 'N/A'}</p>
+          <p><strong>Full Time Employees:</strong> {stockData.fullTimeEmployees?.toLocaleString() || 'N/A'}</p>
+          <p><strong>Website:</strong> <a href={stockData.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{stockData.website}</a></p>
+          <p><strong>CEO:</strong> {stockData.ceo || 'N/A'}</p>
         </div>
-      </div>
-
-      <div className="bg-white shadow rounded-lg p-4">
-        <h2 className="text-xl font-semibold mb-2">Latest News</h2>
-        {newsData.map((news, index) => (
-          <div key={index} className="mb-4 pb-4 border-b last:border-b-0">
-            <h3 className="font-semibold">{news.title}</h3>
-            <p className="text-sm text-gray-600">{new Date(news.time_published).toLocaleString()}</p>
-            <p>{news.summary.slice(0, 150)}...</p>
-            <a href={news.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Read more</a>
-          </div>
-        ))}
       </div>
     </div>
   );

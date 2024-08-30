@@ -47,7 +47,7 @@ function App() {
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/news" element={<NewsPage />} />
             <Route path="/dashBoard" element={<DashboardPage />} />
-            <Route path="/favouriteStocks" element={<FavoriteStocksPage />} />
+            <Route path="/favorite-stocks" element={<FavoriteStocksPage />} />
             <Route path="/stock/:symbol" element={<StockDetailPage />} />
           </Routes>
         </Router>

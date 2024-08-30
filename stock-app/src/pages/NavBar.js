@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
 import ptlogo from "../image/ptlogo.png";
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
@@ -41,25 +41,29 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <span className="font-bold text-xl">Profitable Trader</span> */}
         </a>
         <nav>
-          <SidebarItem icon="dashboard" text="Dashboard" onClick={() => navigate('/dashboard')}/>
-          <SidebarItem icon="analysis" text="Analysis" />
-          <SidebarItem icon="news" text="News" />
-          <SidebarItem icon="history" text="History" />
-          <SidebarItem icon="journal" text="Journal" />
+          <SidebarItem icon="dashboard" text="Dashboard" path="/dashboard" />
+          <SidebarItem icon="analysis" text="Analysis" path="/" />
+          <SidebarItem icon="news" text="News" path="/news" />
+          <SidebarItem icon="history" text="History" path="/history" />
+          <SidebarItem icon="journal" text="Journal" path="/journal" />
           <div className="border-t border-gray-700 my-4"></div>
           <h3 className="text-lg font-semibold mb-2">You</h3>
-          <SidebarItem icon="manage-alerts" text="Manage Alerts" />
-          <SidebarItem icon="reminders" text="Reminders" />
-          <SidebarItem icon="favourite-stocks" text="Favourite Stocks" />
-          <SidebarItem icon="notes" text="Notes" />
-          <SidebarItem icon="saved-patterns" text="Saved Patterns" />
+          <SidebarItem icon="manage-alerts" text="Manage Alerts" path="/manage-alerts" />
+          <SidebarItem icon="reminders" text="Reminders" path="/reminders" />
+          <SidebarItem icon="favourite-stocks" text="Favourite Stocks" path="/favorite-stocks" />
+          <SidebarItem icon="notes" text="Notes" path="/notes" />
+          <SidebarItem icon="saved-patterns" text="Saved Patterns" path="/saved-patterns" />
         </nav>
       </div>
     </div>
   );
 };
 
-const SidebarItem = ({ icon, text }) => {
+const SidebarItem = ({ icon, text, path }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = location.pathname === path;
+
   const getIcon = (iconName) => {
     const icons = {
       dashboard: (
@@ -147,7 +151,11 @@ const SidebarItem = ({ icon, text }) => {
   };
 
   return (
-    <a href="#" className="flex items-center py-2 px-4 hover:bg-gray-800">
+    <a href="#" className="flex items-center py-2 px-4 hover:bg-gray-800"
+    onClick={(e) => {
+      e.preventDefault();
+      navigate(path);
+    }}>
       <svg
         className="w-6 h-6 mr-4"
         fill="none"
