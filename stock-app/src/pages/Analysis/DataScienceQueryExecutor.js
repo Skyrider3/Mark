@@ -170,23 +170,26 @@ const DataScienceQueryExecutor = () => {
               <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
                 {analysisResult.result}
               </Typography>
+              <p>Visual Plot:</p>
               <img
                 src={analysis}
                 alt="Analysis plot"
                 style={{ maxWidth: "100%", height: "auto", marginTop: "10px" }}
               />
               {analysisResult.plot && (
-                <img
-                  src={`data:image/png;base64,${analysisResult.plot}`}
-                  alt="Analysis plot"
-                  style={{
-                    maxWidth: "100%",
-                    height: "auto",
-                    marginTop: "10px",
-                  }}
-                />
+                <>
+                  <p>Image:</p>
+                  <img
+                    src={`data:image/png;base64,${analysisResult.plot}`}
+                    alt="Analysis plot"
+                    style={{
+                      maxWidth: "100%",
+                      height: "auto",
+                      marginTop: "10px",
+                    }}
+                  />
+                </>
               )}
-              <>summary blah blah</>
             </CardContent>
           </Card>
         )}
