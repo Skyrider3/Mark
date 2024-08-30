@@ -5,6 +5,7 @@ import {
   Card, CardContent, Box, Link
 } from '@mui/material';
 import { styled } from '@mui/system';
+import { useNavigate } from 'react-router-dom';
 import landing from '../../image/landing.jpg';
 
 const BackgroundImage = styled('div')(({ theme }) => ({
@@ -38,6 +39,8 @@ const GlassCard = styled(Card)({
 });
 
 const LandingPage = () => {
+  const navigate = useNavigate();
+
   return (
     <>
       <BackgroundImage />
@@ -46,8 +49,8 @@ const LandingPage = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'white' }}>
             Profitable Trader
           </Typography>
-          <Button color="inherit" component={Link} href="/signin" sx={{ color: 'white' }}>SIGN IN</Button>
-          <Button color="inherit" component={Link} href="/signup" sx={{ color: 'white' }}>SIGN UP</Button>
+          <Button color="inherit" component={Link} sx={{ color: 'white' }} onClick={()=>navigate('/login')}>SIGN IN</Button>
+          <Button color="inherit" component={Link} sx={{ color: 'white' }} onClick={()=>navigate('/login')}>SIGN UP</Button>
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ mt: 8 }}>
@@ -77,6 +80,7 @@ const LandingPage = () => {
                       variant="contained" 
                       size="large" 
                       sx={{ mr: 2, bgcolor: '#2196f3', '&:hover': { bgcolor: '#1976d2' } }}
+                      onClick={()=>navigate('/login')}
                     >
                       START YOUR JOURNEY
                     </Button>
@@ -84,6 +88,7 @@ const LandingPage = () => {
                       variant="outlined" 
                       size="large" 
                       sx={{ color: 'white', borderColor: 'white', '&:hover': { borderColor: 'white' } }}
+                      onClick={()=>navigate('/login')}
                     >
                       ALREADY A MEMBER? SIGN IN
                     </Button>

@@ -42,7 +42,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         </a>
         <nav>
           <SidebarItem icon="dashboard" text="Dashboard" path="/dashboard" />
-          <SidebarItem icon="analysis" text="Analysis" path="/" />
+          <SidebarItem icon="analysis" text="Analysis" path="/analysis" />
           <SidebarItem icon="news" text="News" path="/news" />
           <SidebarItem icon="history" text="History" path="/history" />
           <SidebarItem icon="journal" text="Journal" path="/journal" />
@@ -203,16 +203,18 @@ const UserMenu = ({ isOpen, toggleMenu }) => {
           <span className="text-white font-semibold">Aditya Inampudi</span>
         </div>
       </div>
-      <MenuItem icon="settings" text="Settings & privacy" />
+      <MenuItem icon="settings" text="Settings & privacy" path="#"/>
       {/* <MenuItem icon="display" text="Display & accessibility" /> */}
-      <MenuItem icon="feedback" text="Give feedback" />
-      <MenuItem icon="help" text="Help & support" />
-      <MenuItem icon="logout" text="Log Out" />
+      <MenuItem icon="feedback" text="Give feedback"  path="#"/>
+      <MenuItem icon="help" text="Help & support"  path="#"/>
+      <MenuItem icon="logout" text="Log Out" path="/login" />
     </div>
   );
 };
 
-const MenuItem = ({ icon, text }) => {
+const MenuItem = ({ icon, text, path }) => {
+  const navigate = useNavigate();
+
   const icons = {
     settings: (
       <path
@@ -259,6 +261,10 @@ const MenuItem = ({ icon, text }) => {
   return (
     <a
       href="#"
+      onClick={(e) => {
+        e.preventDefault();
+        navigate(path);
+      }}
       className="flex items-center px-4 py-2 text-sm text-white hover:bg-gray-800"
     >
       <svg
