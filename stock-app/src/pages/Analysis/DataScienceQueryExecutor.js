@@ -176,6 +176,15 @@ const DataScienceQueryExecutor = () => {
                 alt="Analysis plot"
                 style={{ maxWidth: "100%", height: "auto", marginTop: "10px" }}
               />
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+                sx={{ mt: 2 }}
+              >
+                Save Pattern
+              </Button>
               {analysisResult.plot && (
                 <>
                   <p>Image:</p>

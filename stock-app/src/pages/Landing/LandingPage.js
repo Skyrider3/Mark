@@ -115,13 +115,16 @@ const LandingPage = () => {
                     • Real-time trading signals
                   </Typography>
                   <Typography variant="body1" paragraph sx={{ color: 'white' }}>
-                    • Personalized risk management
+                    • Personalized risk management analysis
                   </Typography>
                   <Typography variant="body1" paragraph sx={{ color: 'white' }}>
-                    • Community of expert traders
+                    • AI expert trading advisors
+                  </Typography>
+                  <Typography variant="body1" paragraph sx={{ color: 'white' }}>
+                    • Documented trade management
                   </Typography>
                   <Typography variant="body1" sx={{ color: 'white' }}>
-                    • Continuous learning resources
+                    • AI strategist who finds patterns
                   </Typography>
                 </CardContent>
               </GlassCard>
