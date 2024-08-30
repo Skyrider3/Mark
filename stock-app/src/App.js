@@ -8,6 +8,8 @@ import './index.css';
 import LandingPage from "./pages/Landing/LandingPage";
 import NewsPage from "./pages/News/NewsPage";
 import DashboardPage from "./pages/DashBoard/DashBoardPage";
+import FavoriteStocksPage from "./pages/Favourite Stocks/FavouriteStocksPage";
+import StockDetailPage from "./pages/StockDetailPage/StockDetailPage";
 
 const theme = createTheme({
   palette: {
@@ -45,6 +47,8 @@ function App() {
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/news" element={<NewsPage />} />
             <Route path="/dashBoard" element={<DashboardPage />} />
+            <Route path="/favouriteStocks" element={<FavoriteStocksPage />} />
+            <Route path="/stock/:symbol" element={<StockDetailPage />} />
           </Routes>
         </Router>
       </ThemeProvider>

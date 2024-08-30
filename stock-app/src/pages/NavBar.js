@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import ptlogo from '../image/ptlogo.png'
+import { useNavigate } from 'react-router-dom';
+import ptlogo from "../image/ptlogo.png";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   return (
@@ -40,19 +41,18 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <span className="font-bold text-xl">Profitable Trader</span> */}
         </a>
         <nav>
-          <SidebarItem icon="home" text="DashBoard" />
-          <SidebarItem icon="shorts" text="Analysis" />
-          <SidebarItem icon="music" text="News" />
-          <SidebarItem icon="subscriptions" text="History" />
-          <SidebarItem icon="subscriptions" text="Journel" />
+          <SidebarItem icon="dashboard" text="Dashboard" onClick={() => navigate('/dashboard')}/>
+          <SidebarItem icon="analysis" text="Analysis" />
+          <SidebarItem icon="news" text="News" />
+          <SidebarItem icon="history" text="History" />
+          <SidebarItem icon="journal" text="Journal" />
           <div className="border-t border-gray-700 my-4"></div>
           <h3 className="text-lg font-semibold mb-2">You</h3>
-          <SidebarItem icon="channel" text="Manage Alerts" />
-          <SidebarItem icon="history" text="Reminders" />
-          <SidebarItem icon="playlists" text="Favourite Stocks" />
-          <SidebarItem icon="videos" text="Notes" />
-          {/* <SidebarItem icon="watch-later" text="Watch later" />
-          <SidebarItem icon="liked" text="Liked videos" /> */}
+          <SidebarItem icon="manage-alerts" text="Manage Alerts" />
+          <SidebarItem icon="reminders" text="Reminders" />
+          <SidebarItem icon="favourite-stocks" text="Favourite Stocks" />
+          <SidebarItem icon="notes" text="Notes" />
+          <SidebarItem icon="saved-patterns" text="Saved Patterns" />
         </nav>
       </div>
     </div>
@@ -61,9 +61,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
 const SidebarItem = ({ icon, text }) => {
   const getIcon = (iconName) => {
-    // You can replace these with more accurate SVG icons
     const icons = {
-      home: (
+      dashboard: (
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -71,36 +70,20 @@ const SidebarItem = ({ icon, text }) => {
           d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
         />
       ),
-      shorts: (
+      analysis: (
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
         />
       ),
-      subscriptions: (
+      news: (
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-        />
-      ),
-      music: (
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-        />
-      ),
-      channel: (
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+          d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"
         />
       ),
       history: (
@@ -111,23 +94,23 @@ const SidebarItem = ({ icon, text }) => {
           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       ),
-      playlists: (
+      journal: (
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M4 6h16M4 10h16M4 14h16M4 18h16"
+          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
         />
       ),
-      videos: (
+      "manage-alerts": (
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
         />
       ),
-      "watch-later": (
+      reminders: (
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -135,12 +118,28 @@ const SidebarItem = ({ icon, text }) => {
           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
         />
       ),
-      liked: (
+      "favourite-stocks": (
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth={2}
-          d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+        />
+      ),
+      notes: (
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+        />
+      ),
+      "saved-patterns": (
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
         />
       ),
     };
@@ -196,16 +195,10 @@ const UserMenu = ({ isOpen, toggleMenu }) => {
           <span className="text-white font-semibold">Aditya Inampudi</span>
         </div>
       </div>
-      <a
-        href="#"
-        className="block px-4 py-2 text-sm text-blue-500 hover:bg-gray-800"
-      >
-        See all profiles
-      </a>
       <MenuItem icon="settings" text="Settings & privacy" />
-      <MenuItem icon="help" text="Help & support" />
-      <MenuItem icon="display" text="Display & accessibility" />
+      {/* <MenuItem icon="display" text="Display & accessibility" /> */}
       <MenuItem icon="feedback" text="Give feedback" />
+      <MenuItem icon="help" text="Help & support" />
       <MenuItem icon="logout" text="Log Out" />
     </div>
   );
@@ -274,7 +267,7 @@ const MenuItem = ({ icon, text }) => {
   );
 };
 
-const NavbarV2 = () => {
+const NavBar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -373,4 +366,4 @@ const NavbarV2 = () => {
   );
 };
 
-export default NavbarV2;
+export default NavBar;
