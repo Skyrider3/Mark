@@ -10,6 +10,11 @@ import NewsPage from "./pages/News/NewsPage";
 import DashboardPage from "./pages/DashBoard/DashBoardPage";
 import FavoriteStocksPage from "./pages/Favourite Stocks/FavouriteStocksPage";
 import StockDetailPage from "./pages/StockDetailPage/StockDetailPage";
+import TradeJournal from "./pages/Journal/TradeJournal";
+import OrderHistory from "./pages/Order History/OrderHistory";
+import StockAlerts from "./pages/Manage Alerts/StockAlerts";
+import StockNotes from "./pages/Notes/StockNotes";
+import TradingReminders from "./pages/Reminders/TradingReminders";
 
 const theme = createTheme({
   palette: {
@@ -49,6 +54,12 @@ function App() {
             <Route path="/dashBoard" element={<DashboardPage />} />
             <Route path="/favorite-stocks" element={<FavoriteStocksPage />} />
             <Route path="/stock/:symbol" element={<StockDetailPage />} />
+            <Route path="/journal" element={<TradeJournal />} />
+            <Route path="/history" element={<OrderHistory />} />
+            <Route path="/manage-alerts" element={<StockAlerts />} />
+            <Route path="/notes" element={<StockNotes />} />
+            <Route path="/reminders" element={<TradingReminders />} />
+            
           </Routes>
         </Router>
       </ThemeProvider>
