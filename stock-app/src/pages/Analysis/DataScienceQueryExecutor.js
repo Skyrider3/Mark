@@ -185,7 +185,7 @@ const DataScienceQueryExecutor = () => {
                   />
                 </>
               )}
-              <Button
+              {analysisResult.result || analysisResult.plot && (<Button
                 type="submit"
                 variant="contained"
                 color="primary"
@@ -193,7 +193,7 @@ const DataScienceQueryExecutor = () => {
                 sx={{ mt: 2 }}
               >
                 Save Pattern
-              </Button>
+              </Button>)}
             </CardContent>
           </Card>
         )}
