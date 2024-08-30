@@ -221,7 +221,10 @@ const AnalysisHome = () => {
           setLoading(true);
           const formData = new FormData();
           formData.append("stock", selectedStock);
-          const response = await axios.post(`${API_URL}/api/AIAnalysis`, formData);
+          const response = await axios.post(
+            `${API_URL}/api/AIAnalysis`,
+            formData
+          );
           if (response.data) {
             setData(response.data);
           }
@@ -239,8 +242,13 @@ const AnalysisHome = () => {
     if (error) return <div>Error: {error}</div>;
 
     return (
-      <Grid item xs={12}>
-        {data}
+      <Grid item xs={12} className="space-y-4">
+        {Object.entries(data).map(([key, value]) => (
+          <div key={key} className="border rounded-lg p-4 shadow-sm">
+            <h2 className="text-lg font-semibold mb-2">{key}</h2>
+            <p className="text-gray-700">{value}</p>
+          </div>
+        ))}
       </Grid>
     );
   };
@@ -256,7 +264,7 @@ const AnalysisHome = () => {
       case "chatAnalyist":
         return <ExpertChat />;
       case "AIAnalysis":
-          return <ComprehensieAnalysis />;  
+        return <ComprehensieAnalysis />;
       default:
         return null;
     }
