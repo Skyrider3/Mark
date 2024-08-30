@@ -16,6 +16,7 @@ import StockAlerts from "./pages/Manage Alerts/StockAlerts";
 import StockNotes from "./pages/Notes/StockNotes";
 import TradingReminders from "./pages/Reminders/TradingReminders";
 import Login from "./pages/Authentication/Login";
+import SavedPatterns from "./pages/Saved Patterns/SavedPatterns";
 
 const theme = createTheme({
   palette: {
@@ -61,7 +62,7 @@ function App() {
             <Route path="/notes" element={<StockNotes />} />
             <Route path="/reminders" element={<TradingReminders />} />
             <Route path="/login" element={<Login />} />
-            
+            <Route path="/saved-patterns" element={<SavedPatterns />} />    
           </Routes>
         </Router>
       </ThemeProvider>
