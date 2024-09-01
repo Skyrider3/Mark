@@ -57,7 +57,6 @@ app = FastAPI(lifespan=lifespan)
 client = OpenAI(api_key="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")
 
 # Enable CORS
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000","http://localhost:8000"],  # Add your frontend URL here
@@ -78,14 +77,17 @@ class StockData(BaseModel):
 class AnalysisRequest(BaseModel):
     request: str
 
+
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 #logger = logging.get#logger(__name__)
+
 
 # Database setup
 DATABASE_URL = "sqlite:///./test.db"
 database = databases.Database(DATABASE_URL)
 metadata = sqlalchemy.MetaData()
+
 
 users = sqlalchemy.Table(
     "users",
@@ -160,16 +162,20 @@ class DataScienceQuery(BaseModel):
     query: str
     datasets: List[str]  # List of base64 encoded CSV data
 
+
 # Authentication functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password):
     return pwd_context.hash(password)
+
 
 async def get_user(username: str):
     query = users.select().where(users.c.username == username)
     return await database.fetch_one(query)
+
 
 async def authenticate_user(username: str, password: str):
     user = await get_user(username)
@@ -178,6 +184,7 @@ async def authenticate_user(username: str, password: str):
     if not verify_password(password, user["hashed_password"]):
         return False
     return user
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -188,6 +195,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -217,6 +225,7 @@ async def log_requests(request: Request, call_next):
     #logger.info(f"Response status: {response.status_code}")
     return response
 
+
 # Authentication endpoints
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -233,6 +242,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user["username"]}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.post("/register")
 async def register(user: UserCreate):
@@ -251,9 +261,11 @@ async def register(user: UserCreate):
         ##logger.error(f"Error during registration: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while registering the user")
 
+
 @app.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
+
 
 # Watchlist endpoints
 @app.post("/watchlist/add")
@@ -262,15 +274,18 @@ async def add_to_watchlist(symbol: str, current_user: User = Depends(get_current
     await database.execute(query)
     return {"message": f"Added {symbol} to watchlist"}
 
+
 @app.get("/watchlist")
 async def get_watchlist(current_user: User = Depends(get_current_user)):
     query = watchlists.select().where(watchlists.c.user_id == current_user["id"])
     result = await database.fetch_all(query)
     return [item["symbol"] for item in result]
 
+
 # Stock data and analysis functions
 def calculate_sma(data, window):
     return data['Close'].rolling(window=window).mean()
+
 
 def calculate_rsi(data, window):
     delta = data['Close'].diff()
@@ -279,9 +294,12 @@ def calculate_rsi(data, window):
     rs = gain / loss
     return 100 - (100 / (1 + rs))
 
+
 def perform_sentiment_analysis(text):
     blob = TextBlob(text)
     return blob.sentiment.polarity
+
+
 
 def analyze_stock_data(data: pd.DataFrame, request: str) -> str:
     data['SMA_20'] = calculate_sma(data, 20)
@@ -322,6 +340,8 @@ def analyze_stock_data(data: pd.DataFrame, request: str) -> str:
 
     return analysis
 
+
+
 # Stock data endpoints
 @app.get("/api/stock_data", response_model=List[StockData])
 async def get_stock_data(
@@ -358,6 +378,8 @@ async def get_stock_data(
         )
         for date, row in data.iterrows()
     ]
+
+
 
 
 @app.get("/api/stock_comparison")
@@ -398,6 +420,8 @@ async def compare_stocks(
     return comparison_data
 
 
+
+
 @app.post("/api/analyze")
 async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(None)):
     try:
@@ -413,6 +437,7 @@ async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(No
         return {"result": analysis_result}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 
 
@@ -446,14 +471,6 @@ async def analyzer(query: Query):
             "analysis_result": None
         }
 
-# Displayed output #################
-# {
-#     "processed_question": "Data Science Question: What is the distribution of trading volume across different days of the week for a specific stock, and which day of the week typically experiences the highest trading volume based on historical data?",
-#     "generated_code": "import yfinance as yf\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\n\n# Define the stock symbol and timeframe\nstock_symbol = 'AAPL'  # You can change this to any stock symbol of your choice\nstock_data = yf.Ticker(stock_symbol)\n\n# Fetch historical stock data\nhistorical_data = stock_data.history(period=\"1y\")\nhistorical_data['Day_of_Week'] = historical_data.index.dayofweek  # Adding a column for day of the week (0 = Monday, 6 = Sunday)\n\n# Calculate average trading volume for each day of the week\navg_volume_by_day = historical_data.groupby('Day_of_Week')['Volume'].mean()\n\n# Create a bar plot to visualize the distribution of trading volume across different days of the week\nplt.figure(figsize=(10, 6))\nplt.bar(avg_volume_by_day.index, avg_volume_by_day.values, color='skyblue')\nplt.xticks(np.arange(7), ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])\nplt.xlabel('Day of the Week')\nplt.ylabel('Average Trading Volume')\nplt.title('Average Trading Volume by Day of the Week for ' + stock_symbol)\nplt.show()\n\n# Identify the day of the week with the highest average trading volume\nmax_volume_day = avg_volume_by_day.idxmax()\nprint(f\"The day of the week with the highest average trading volume for {stock_symbol} is: {max_volume_day}\")\n",
-#     "analysis_result": {
-#         "result": "The day of the week with the highest average trading volume for AAPL is: 4"
-#     }
-# }
 
 
 
@@ -477,6 +494,8 @@ async def process_query(query: str):
         raise Exception(f"Error processing query: {str(e)}")
 
 
+
+
 async def generate_code(question: str):
     prompt = f"""
     Generate Python code to answer the following data science question about stock market analysis. Use yfinance to fetch real-time stock data, and pandas, numpy, matplotlib for analysis and visualization. Do not use any local CSV files. Always fetch data using yfinance.
@@ -498,6 +517,9 @@ async def generate_code(question: str):
     except Exception as e:
         #logger.error(f"Error in generate_code: {str(e)}")
         raise Exception(f"Error generating code: {str(e)}")
+
+
+
     
 async def execute_analysis(code: str):
     try:
@@ -532,8 +554,8 @@ async def execute_analysis(code: str):
             buf = io.BytesIO()
             plt.savefig(buf, format='png', dpi=300, bbox_inches='tight')
             buf.seek(0)
-            plot_data = f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}"
-            #plot_data = base64.b64encode(buf.getvalue()).decode()
+            # plot_data = f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}"
+            plot_data = base64.b64encode(buf.getvalue()).decode()
             plt.close('all')  # Close all plots to free memory
             # print(f"Plot encoded. Length: {len(plot_data)}")
             return {"result": text_output, "plot": plot_data}
@@ -569,8 +591,9 @@ async def stock_chat(query: Query):
         raise HTTPException(status_code=500, detail="An error occurred while processing the chat query")
 
 
-## functionality for AI Assistant 
 
+
+## functionality for AI Assistant 
 @app.get("/api/financialgurus")
 async def get_financial_gurus():
     """
@@ -587,6 +610,8 @@ async def get_financial_gurus():
     ]
 
     return {"gurus": gurus}
+
+
 
 
 def get_guru_prompt_template(guru_name: str, stockname: str, stock_data: str) -> str:
@@ -721,7 +746,7 @@ def parse_analysis_report(stock : str = Form(...)):
     stock_data = yf.download(stock, period="5y")
 
     prompt = f"""
-        Here is the historical stock data for {stock}: {stock_data.to_string()}
+        Here is the historical stock data for stock ticker {stock}: {stock_data.to_string()}
         **Fundamental Analysis Report**
 
         **Industry Overview:**
