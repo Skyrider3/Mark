@@ -59,7 +59,7 @@ client = OpenAI(api_key="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")
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","http://localhost:8000"],  # Add your frontend URL here
+    allow_origins=["http://localhost:3000","http://localhost:8000","https://4fa8-2601-19b-b00-26d0-9d27-c9a1-aed8-8905.ngrok-free.app "],  # Add your frontend URL here
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

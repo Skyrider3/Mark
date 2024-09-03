@@ -6,6 +6,7 @@ sqlalchemy
 databases[sqlite]
 passlib[bcrypt] 
 python-jose[cryptography]
+yfinance
 
 # Data & Visualization
 pandas
@@ -19,9 +20,9 @@ llama_index
 llama_agents
 llama_index.llms.ollama
 
-# Vector Databases & Embeddings
-llama-index-vector-stores-qdrant
-llama_index.embeddings.ollama-0.1.2
+# # Vector Databases & Embeddings
+# llama-index-vector-stores-qdrant
+# llama_index.embeddings.ollama-0.1.2
 
 # Utilities
 PyPDF2
