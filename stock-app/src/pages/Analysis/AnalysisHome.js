@@ -287,7 +287,7 @@ const AnalysisHome = () => {
                 <Typography variant="h6" gutterBottom>
                   Stock Chart
                 </Typography>
-                <StockChart stock={selectedStock} onStockChange={handleStockSelect}/>
+                <StockChart selectedStock={selectedStock} onStockChange={handleStockSelect}/>
               </Paper>
             </Grid>
 
