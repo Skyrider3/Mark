@@ -67,7 +67,9 @@ const StockChart = ({ selectedStock, onStockChange }) => {
   );
 
   useEffect(() => {
-    fetchStockData(dateRange, symbol);
+    if (symbol && dateRange) {
+      fetchStockData(dateRange, symbol);
+    }
   }, [dateRange, symbol, fetchStockData]);
 
   useEffect(() => {
