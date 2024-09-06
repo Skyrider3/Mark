@@ -13,6 +13,7 @@ import {
   StepLabel,
 } from "@mui/material";
 import { API_URL } from "../appconfig";
+import { axiosPost } from '../Axios/axiosMethods';
 
 const DataScienceQueryExecutor = ({selectedStock}) => {
   const [query, setQuery] = useState("");

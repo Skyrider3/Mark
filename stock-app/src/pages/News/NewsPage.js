@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  AppBar, Toolbar, Typography, TextField, Button, Container, Grid, 
+  Typography, TextField, Button, Container, Grid, 
   Card, CardContent, CardMedia, IconButton, InputAdornment
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { styled } from '@mui/system';
 import NavBar from '../NavBar';
-import { axiosGet } from '../Axios/axiosMethods';
+import axios from 'axios';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   height: '100%',
@@ -28,7 +28,7 @@ const NewsPage = () => {
     setLoading(true);
     try {
       // Replace this URL with an actual financial news API
-      const response = await axiosGet(`https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey=0afba4fa912b4df185b1cc663c51f960${stock ? `&q=${stock}` : ''}`)
+      const response = await axios.get(`https://newsapi.org/v2/top-headlines?country=us&category=business&apiKey=0afba4fa912b4df185b1cc663c51f960${stock ? `&q=${stock}` : ''}`)
       setNews(response.data.articles);
     } catch (error) {
       console.error('Error fetching news:', error);
