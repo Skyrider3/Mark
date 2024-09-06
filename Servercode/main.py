@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Request, File, Uplo
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 import requests 
+import aiohttp
 import json
 import yfinance as yf
 import io
@@ -57,10 +58,9 @@ app = FastAPI(lifespan=lifespan)
 client = OpenAI(api_key="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")
 
 # Enable CORS
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","http://localhost:8000"],  # Add your frontend URL here
+    allow_origins=["http://localhost:3000","http://localhost:8000","https://cd26-2601-19b-b00-26d0-2c7b-5b88-3-296c.ngrok-free.app"],  # Add your frontend URL here
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,14 +78,17 @@ class StockData(BaseModel):
 class AnalysisRequest(BaseModel):
     request: str
 
+
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 #logger = logging.get#logger(__name__)
+
 
 # Database setup
 DATABASE_URL = "sqlite:///./test.db"
 database = databases.Database(DATABASE_URL)
 metadata = sqlalchemy.MetaData()
+
 
 users = sqlalchemy.Table(
     "users",
@@ -160,16 +163,20 @@ class DataScienceQuery(BaseModel):
     query: str
     datasets: List[str]  # List of base64 encoded CSV data
 
+
 # Authentication functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password):
     return pwd_context.hash(password)
+
 
 async def get_user(username: str):
     query = users.select().where(users.c.username == username)
     return await database.fetch_one(query)
+
 
 async def authenticate_user(username: str, password: str):
     user = await get_user(username)
@@ -178,6 +185,7 @@ async def authenticate_user(username: str, password: str):
     if not verify_password(password, user["hashed_password"]):
         return False
     return user
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -188,6 +196,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -217,6 +226,7 @@ async def log_requests(request: Request, call_next):
     #logger.info(f"Response status: {response.status_code}")
     return response
 
+
 # Authentication endpoints
 @app.post("/token", response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -233,6 +243,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user["username"]}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @app.post("/register")
 async def register(user: UserCreate):
@@ -251,9 +262,11 @@ async def register(user: UserCreate):
         ##logger.error(f"Error during registration: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while registering the user")
 
+
 @app.get("/users/me", response_model=User)
 async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
+
 
 # Watchlist endpoints
 @app.post("/watchlist/add")
@@ -262,15 +275,18 @@ async def add_to_watchlist(symbol: str, current_user: User = Depends(get_current
     await database.execute(query)
     return {"message": f"Added {symbol} to watchlist"}
 
+
 @app.get("/watchlist")
 async def get_watchlist(current_user: User = Depends(get_current_user)):
     query = watchlists.select().where(watchlists.c.user_id == current_user["id"])
     result = await database.fetch_all(query)
     return [item["symbol"] for item in result]
 
+
 # Stock data and analysis functions
 def calculate_sma(data, window):
     return data['Close'].rolling(window=window).mean()
+
 
 def calculate_rsi(data, window):
     delta = data['Close'].diff()
@@ -279,9 +295,12 @@ def calculate_rsi(data, window):
     rs = gain / loss
     return 100 - (100 / (1 + rs))
 
+
 def perform_sentiment_analysis(text):
     blob = TextBlob(text)
     return blob.sentiment.polarity
+
+
 
 def analyze_stock_data(data: pd.DataFrame, request: str) -> str:
     data['SMA_20'] = calculate_sma(data, 20)
@@ -322,6 +341,8 @@ def analyze_stock_data(data: pd.DataFrame, request: str) -> str:
 
     return analysis
 
+
+
 # Stock data endpoints
 @app.get("/api/stock_data", response_model=List[StockData])
 async def get_stock_data(
@@ -358,6 +379,8 @@ async def get_stock_data(
         )
         for date, row in data.iterrows()
     ]
+
+
 
 
 @app.get("/api/stock_comparison")
@@ -398,6 +421,8 @@ async def compare_stocks(
     return comparison_data
 
 
+
+
 @app.post("/api/analyze")
 async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(None)):
     try:
@@ -413,6 +438,7 @@ async def analyze(request: str = Form(...), file: Optional[UploadFile] = File(No
         return {"result": analysis_result}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 
 
@@ -446,14 +472,6 @@ async def analyzer(query: Query):
             "analysis_result": None
         }
 
-# Displayed output #################
-# {
-#     "processed_question": "Data Science Question: What is the distribution of trading volume across different days of the week for a specific stock, and which day of the week typically experiences the highest trading volume based on historical data?",
-#     "generated_code": "import yfinance as yf\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\n\n# Define the stock symbol and timeframe\nstock_symbol = 'AAPL'  # You can change this to any stock symbol of your choice\nstock_data = yf.Ticker(stock_symbol)\n\n# Fetch historical stock data\nhistorical_data = stock_data.history(period=\"1y\")\nhistorical_data['Day_of_Week'] = historical_data.index.dayofweek  # Adding a column for day of the week (0 = Monday, 6 = Sunday)\n\n# Calculate average trading volume for each day of the week\navg_volume_by_day = historical_data.groupby('Day_of_Week')['Volume'].mean()\n\n# Create a bar plot to visualize the distribution of trading volume across different days of the week\nplt.figure(figsize=(10, 6))\nplt.bar(avg_volume_by_day.index, avg_volume_by_day.values, color='skyblue')\nplt.xticks(np.arange(7), ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'])\nplt.xlabel('Day of the Week')\nplt.ylabel('Average Trading Volume')\nplt.title('Average Trading Volume by Day of the Week for ' + stock_symbol)\nplt.show()\n\n# Identify the day of the week with the highest average trading volume\nmax_volume_day = avg_volume_by_day.idxmax()\nprint(f\"The day of the week with the highest average trading volume for {stock_symbol} is: {max_volume_day}\")\n",
-#     "analysis_result": {
-#         "result": "The day of the week with the highest average trading volume for AAPL is: 4"
-#     }
-# }
 
 
 
@@ -477,6 +495,8 @@ async def process_query(query: str):
         raise Exception(f"Error processing query: {str(e)}")
 
 
+
+
 async def generate_code(question: str):
     prompt = f"""
     Generate Python code to answer the following data science question about stock market analysis. Use yfinance to fetch real-time stock data, and pandas, numpy, matplotlib for analysis and visualization. Do not use any local CSV files. Always fetch data using yfinance.
@@ -498,6 +518,9 @@ async def generate_code(question: str):
     except Exception as e:
         #logger.error(f"Error in generate_code: {str(e)}")
         raise Exception(f"Error generating code: {str(e)}")
+
+
+
     
 async def execute_analysis(code: str):
     try:
@@ -532,8 +555,8 @@ async def execute_analysis(code: str):
             buf = io.BytesIO()
             plt.savefig(buf, format='png', dpi=300, bbox_inches='tight')
             buf.seek(0)
-            plot_data = f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}"
-            #plot_data = base64.b64encode(buf.getvalue()).decode()
+            # plot_data = f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}"
+            plot_data = base64.b64encode(buf.getvalue()).decode()
             plt.close('all')  # Close all plots to free memory
             # print(f"Plot encoded. Length: {len(plot_data)}")
             return {"result": text_output, "plot": plot_data}
@@ -569,8 +592,9 @@ async def stock_chat(query: Query):
         raise HTTPException(status_code=500, detail="An error occurred while processing the chat query")
 
 
-## functionality for AI Assistant 
 
+
+## functionality for AI Assistant 
 @app.get("/api/financialgurus")
 async def get_financial_gurus():
     """
@@ -587,6 +611,8 @@ async def get_financial_gurus():
     ]
 
     return {"gurus": gurus}
+
+
 
 
 def get_guru_prompt_template(guru_name: str, stockname: str, stock_data: str) -> str:
@@ -721,7 +747,7 @@ def parse_analysis_report(stock : str = Form(...)):
     stock_data = yf.download(stock, period="5y")
 
     prompt = f"""
-        Here is the historical stock data for {stock}: {stock_data.to_string()}
+        Here is the historical stock data for stock ticker {stock}: {stock_data.to_string()}
         **Fundamental Analysis Report**
 
         **Industry Overview:**
@@ -797,6 +823,215 @@ def parse_analysis_report(stock : str = Form(...)):
         analysis_result[heading] = content
 
     return analysis_result
+
+
+
+
+
+POLYGON_API_KEY = "nDUQqv3zEBdeZwmJUyHxiKg2lXpx_g0E"
+
+# for dashboard watch list
+@app.get("/api/watchlist_data")
+async def get_watchlist_data(symbols: str): # = Query(..., description="Comma-separated stock symbols")):
+    symbols_list = symbols.split(',')
+    watchlist_data = {}
+
+    async with aiohttp.ClientSession() as session:
+        for symbol in symbols_list:
+            url = f"https://api.polygon.io/v2/last/nbbo/{symbol}?apiKey={POLYGON_API_KEY}"
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data['status'] == 'success':
+                        last_quote = data['results']
+                        watchlist_data[symbol] = {
+                            'price': last_quote['P'],
+                            'change_percent': ((last_quote['P'] - last_quote['p']) / last_quote['p']) * 100
+                        }
+                else:
+                    watchlist_data[symbol] = {'error': 'Failed to fetch data'}
+
+    return watchlist_data
+
+
+# for high volume stocks
+@app.get("/api/high_volume_stocks")
+async def get_high_volume_stocks():
+    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data['status'] == 'OK':
+                    # Sort tickers by volume and get top 5
+                    sorted_tickers = sorted(data['tickers'], key=lambda x: x['day']['v'], reverse=True)[:5]
+                    
+                    high_volume_stocks = []
+                    for ticker in sorted_tickers:
+                        stock_data = {
+                            'symbol': ticker['ticker'],
+                            'ask': ticker['lastQuote']['P'],
+                            'bid': ticker['lastQuote']['p'],
+                            'volume': ticker['day']['v']
+                        }
+                        high_volume_stocks.append(stock_data)
+                    
+                    return high_volume_stocks
+            
+            raise HTTPException(status_code=400, detail="Failed to fetch high volume stocks data")
+
+
+
+
+async def fetch_stock_data(symbols: List[str]):
+    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers={','.join(symbols)}&apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data['status'] == 'OK':
+                    return {ticker['ticker']: {
+                        'price': ticker['lastTrade']['p'],
+                        'change_percent': ticker['todaysChangePerc'],
+                        'volume': ticker['day']['v']
+                    } for ticker in data['tickers']}
+    return {}
+
+
+
+# for top tech stocks
+@app.get("/api/top_tech_stocks")
+async def get_top_tech_stocks():
+    tech_symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'FB', 'TSLA', 'NVDA', 'ADBE', 'INTC', 'CSCO']
+    return await fetch_stock_data(tech_symbols)
+
+
+
+# for top trending stocks
+@app.get("/api/top_trending_stocks")
+async def get_top_trending_stocks():
+    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data['status'] == 'OK':
+                    # Sort by percent change and get top 10
+                    sorted_tickers = sorted(data['tickers'], key=lambda x: abs(x['todaysChangePerc']), reverse=True)[:10]
+                    return {ticker['ticker']: {
+                        'price': ticker['lastTrade']['p'],
+                        'change_percent': ticker['todaysChangePerc'],
+                        'volume': ticker['day']['v']
+                    } for ticker in sorted_tickers}
+    return {}
+
+
+
+# for best buy stocks
+@app.get("/api/best_buy_stocks")
+async def get_best_buy_stocks():
+    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data['status'] == 'OK':
+                    # Filter for stocks with positive change and sort by volume
+                    positive_change_tickers = [t for t in data['tickers'] if t['todaysChangePerc'] > 0]
+                    sorted_tickers = sorted(positive_change_tickers, key=lambda x: x['day']['v'], reverse=True)[:10]
+                    return {ticker['ticker']: {
+                        'price': ticker['lastTrade']['p'],
+                        'change_percent': ticker['todaysChangePerc'],
+                        'volume': ticker['day']['v']
+                    } for ticker in sorted_tickers}
+    return {}
+
+
+
+class AlertBase(BaseModel):
+    symbol: str
+    price: float
+    condition: str
+
+class AlertCreate(AlertBase):
+    pass
+
+class Alert(AlertBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+alerts = []
+alert_id_counter = 1
+
+async def fetch_stock_price(symbol: str):
+    url = f"https://api.polygon.io/v2/last/trade/{symbol}?apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                return data['results']['p']
+    return None
+
+@app.post("/api/alerts", response_model=Alert)
+async def create_alert(alert: AlertCreate):
+    global alert_id_counter
+    new_alert = Alert(
+        id=alert_id_counter,
+        **alert.dict(),
+        created_at=datetime.now()
+    )
+    alerts.append(new_alert)
+    alert_id_counter += 1
+    return new_alert
+
+@app.get("/api/alerts", response_model=List[Alert])
+async def read_alerts():
+    return alerts
+
+@app.put("/api/alerts/{alert_id}", response_model=Alert)
+async def update_alert(alert_id: int, alert: AlertCreate):
+    for existing_alert in alerts:
+        if existing_alert.id == alert_id:
+            existing_alert.symbol = alert.symbol
+            existing_alert.price = alert.price
+            existing_alert.condition = alert.condition
+            return existing_alert
+    raise HTTPException(status_code=404, detail="Alert not found")
+
+@app.delete("/api/alerts/{alert_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_alert(alert_id: int):
+    global alerts
+    alerts = [alert for alert in alerts if alert.id != alert_id]
+    return None
+
+@app.get("/api/check_alerts")
+async def check_alerts():
+    triggered_alerts = []
+    for alert in alerts:
+        current_price = await fetch_stock_price(alert.symbol)
+        if current_price is not None:
+            if (alert.condition == 'above' and current_price > alert.price) or \
+               (alert.condition == 'below' and current_price < alert.price):
+                triggered_alerts.append({
+                    'alert': alert,
+                    'current_price': current_price
+                })
+    return triggered_alerts
+
+# Background task to periodically check alerts
+async def background_alert_checker():
+    while True:
+        await check_alerts()
+        await asyncio.sleep(60)  # Check every minute
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(background_alert_checker())
+
+
 
 
 if __name__ == "__main__":
