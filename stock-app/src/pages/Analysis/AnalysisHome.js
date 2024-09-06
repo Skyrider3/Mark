@@ -206,7 +206,7 @@ const AnalysisHome = () => {
             width: "100%",
           }}
         >
-          <DataScienceQueryExecutor />
+          <DataScienceQueryExecutor selectedStock={selectedStock}/>
         </Paper>
       </Grid>
     );

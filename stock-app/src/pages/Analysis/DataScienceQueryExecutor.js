@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import axios from "axios";
-import analysis from "../../image/analysis.jpg";
 import {
   Card,
   CardContent,
@@ -17,7 +16,7 @@ import {
 
 const API_URL = "http://localhost:8000";
 
-const DataScienceQueryExecutor = () => {
+const DataScienceQueryExecutor = ({selectedStock}) => {
   const [query, setQuery] = useState("");
   const [showCode, setShowCode] = useState(false);
   const [processedQuestion, setProcessedQuestion] = useState("");
@@ -45,7 +44,7 @@ const DataScienceQueryExecutor = () => {
     try {
       const response = await axios.post(
         `${API_URL}/api/dataanalyzer`,
-        { query },
+        { query, stock: selectedStock },
         {
           headers: {
             "Content-Type": "application/json",

@@ -45,18 +45,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           </svg>
         </button>
         <a href="/" className="flex items-center mb-4">
-          {/* <svg
-            className="w-8 h-8 mr-2"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M4 18l4-4 4 4 8-8" />
-            <path d="M12 8V6M12 6h2M12 6H9.5" />
-            <path d="M20 6H16" />
-          </svg>
-          <span className="font-bold text-xl">Profitable Trader</span> */}
         </a>
         <nav>
           <SidebarItem icon="dashboard" text="Dashboard" path="/dashboard" />
@@ -236,10 +224,9 @@ const UserMenu = ({ isOpen, toggleMenu }) => {
           <span className="text-white font-semibold">Aditya Inampudi</span>
         </div>
       </div>
-      <MenuItem icon="settings" text="Settings & privacy" path="#" />
-      {/* <MenuItem icon="display" text="Display & accessibility" /> */}
-      <MenuItem icon="feedback" text="Give feedback" path="#" />
-      <MenuItem icon="help" text="Help & support" path="#" />
+      <MenuItem icon="settings" text="Settings & privacy" path="/account-profile" />
+      <MenuItem icon="feedback" text="Give feedback" path="/feedback" />
+      <MenuItem icon="help" text="Help & support" path="/help" />
       <MenuItem icon="logout" text="Log Out" path="/login" />
     </div>
   );
@@ -314,12 +301,67 @@ const MenuItem = ({ icon, text, path }) => {
   );
 };
 
+const NotificationsMenu = ({ isOpen, toggleMenu }) => {
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        toggleMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [toggleMenu]);
+
+  const notifications = [
+    { id: 1, text: "New market update available", time: "5 minutes ago" },
+    { id: 2, text: "Your watchlist stock XYZ is up by 5%", time: "1 hour ago" },
+    { id: 3, text: "Earnings report for ABC company released", time: "3 hours ago" },
+    { id: 4, text: "New feature: Advanced charting tools added", time: "1 day ago" },
+  ];
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      ref={menuRef}
+      className="absolute right-0 top-full mt-1 w-80 bg-gray-900 rounded-md shadow-lg py-1 z-20"
+    >
+      <div className="px-4 py-2 border-b border-gray-700">
+        <h3 className="text-white font-semibold">Notifications</h3>
+      </div>
+      <div className="max-h-80 overflow-y-auto">
+        {notifications.map((notification) => (
+          <div key={notification.id} className="px-4 py-3 hover:bg-gray-800 cursor-pointer">
+            <p className="text-white text-sm">{notification.text}</p>
+            <p className="text-gray-400 text-xs mt-1">{notification.time}</p>
+          </div>
+        ))}
+      </div>
+      <div className="px-4 py-2 border-t border-gray-700">
+        <a href="/notifications" className="text-blue-400 text-sm hover:text-blue-300">View all notifications</a>
+      </div>
+    </div>
+  );
+};
+
 const NavBar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const toggleUserMenu = () => {
     setUserMenuOpen(!userMenuOpen);
+    setNotificationsOpen(false);
+  };
+
+  const toggleNotifications = () => {
+    setNotificationsOpen(!notificationsOpen);
+    setUserMenuOpen(false);
   };
 
   const toggleSidebar = () => {
@@ -362,7 +404,7 @@ const NavBar = () => {
           </a>
         </div>
         <div className="flex items-center relative">
-          <button className="p-2 hover:bg-gray-700 rounded-full">
+          <button onClick={toggleNotifications} className="p-2 ml-2 hover:bg-gray-700 rounded-full">
             <svg
               className="w-6 h-6"
               fill="none"
@@ -374,24 +416,7 @@ const NavBar = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </button>
-          <button className="p-2 ml-2 hover:bg-gray-700 rounded-full">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2
-                  2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
               />
             </svg>
           </button>
@@ -406,6 +431,7 @@ const NavBar = () => {
             />
           </button>
           <UserMenu isOpen={userMenuOpen} toggleMenu={setUserMenuOpen} />
+          <NotificationsMenu isOpen={notificationsOpen} toggleMenu={setNotificationsOpen} />
         </div>
       </nav>
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />

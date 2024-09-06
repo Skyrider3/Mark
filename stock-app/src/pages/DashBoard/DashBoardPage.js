@@ -10,7 +10,7 @@ import {
   Paper,
 } from "@mui/material";
 import { LineChart, Line, XAxis, YAxis, Tooltip } from "recharts";
-import NavBar from '../NavBar';
+import NavBar from "../NavBar";
 
 const DashboardPage = () => {
   // Static data for demonstration
@@ -42,7 +42,6 @@ const DashboardPage = () => {
         maxWidth="lg"
         style={{ backgroundColor: "white", padding: "20px" }}
       >
-
         <Grid container spacing={3} style={{ marginTop: "20px" }}>
           <Grid item xs={12} md={8}>
             <Paper elevation={3} style={{ padding: "20px" }}>
@@ -92,6 +91,14 @@ const DashboardPage = () => {
                 </div>
               ))}
             </Paper>
+          </Grid>
+        </Grid>
+        <Grid container spacing={3} style={{ marginTop: "20px" }}>
+          <Grid item xs={12} md={8}>
+          <Typography variant="subtitle1">Link to your robinhood account to get trading data and trade stocks</Typography>
+            <Button variant="contained" component="label">
+            Link to your robinhood account
+            </Button>
           </Grid>
         </Grid>
       </Container>
