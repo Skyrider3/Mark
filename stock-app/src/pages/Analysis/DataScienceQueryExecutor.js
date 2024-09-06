@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import {
   Card,
   CardContent,
@@ -41,7 +40,7 @@ const DataScienceQueryExecutor = ({selectedStock}) => {
     setActiveStep(0);
 
     try {
-      const response = await axios.post(
+      const response = await axiosPost(
         `${API_URL}/api/dataanalyzer`,
         { query, stock: selectedStock },
         {

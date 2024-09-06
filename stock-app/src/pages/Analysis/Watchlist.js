@@ -1,8 +1,8 @@
 // src/components/Watchlist.js
 import React, { useState, useEffect } from 'react';
 import { List, ListItem, ListItemText, TextField, Button, Typography, Box } from '@mui/material';
-import axios from 'axios';
 import { API_URL } from "../appconfig";
+import { axiosGet, axiosPost } from '../Axios/axiosMethods';
 
 const Watchlist = () => {
   const [watchlist, setWatchlist] = useState([]);
@@ -14,7 +14,7 @@ const Watchlist = () => {
 
   const fetchWatchlist = async () => {
     try {
-      const response = await axios.get(`${API_URL}/watchlist`, {
+      const response = await axiosGet(`${API_URL}/watchlist`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setWatchlist(response.data);
@@ -26,7 +26,7 @@ const Watchlist = () => {
   const addToWatchlist = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_URL}/watchlist/add`, { symbol: newSymbol }, {
+      await axiosPost(`${API_URL}/watchlist/add`, { symbol: newSymbol }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setNewSymbol('');

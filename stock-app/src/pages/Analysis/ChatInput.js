@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { TextField, Button, Box } from '@mui/material';
 import { useAppContext } from '../../context/AppContext';
-import axios from 'axios';
 import { API_URL } from "../appconfig";
+import { axiosPost } from '../Axios/axiosMethods';
 
 const ChatInput = () => {
   const [input, setInput] = useState('');
@@ -14,7 +14,7 @@ const ChatInput = () => {
     if (!input.trim()) return;
 
     try {
-      const response = await axios.post(`${API_URL}/analyze`, { request: input });
+      const response = await axiosPost(`${API_URL}/analyze`, { request: input });
       addChatMessage({ user: input, bot: response.data.result });
       setInput('');
     } catch (error) {

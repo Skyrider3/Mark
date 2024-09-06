@@ -11,11 +11,11 @@ import {
   Paper,
   Alert,
 } from "@mui/material";
-import axios from "axios";
 import landing from "../../image/landing.jpg";
 import { styled } from "@mui/system";
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from "../appconfig";
+import { axiosPost } from "../Axios/axiosMethods";
 
 const BackgroundImage = styled("div")(({ theme }) => ({
   "&::before": {
@@ -62,7 +62,7 @@ const Login = ({ onLogin }) => {
     try {
       if (isLogin) {
         navigate("/dashboard");
-        // const response = await axios.post(
+        // const response = await axiosPost(
         //   `${API_URL}/token`,
         //   new URLSearchParams({
         //     username: username,
@@ -77,7 +77,7 @@ const Login = ({ onLogin }) => {
         // localStorage.setItem("token", response.data.access_token);
         // onLogin({ username });
       } else {
-        await axios.post(`${API_URL}/register`, { username, password });
+        await axiosPost(`${API_URL}/register`, { username, password });
         setError("Registration successful. Please log in.");
         setIsLogin(true);
       }

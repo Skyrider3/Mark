@@ -17,6 +17,7 @@ import {
 } from "@mui/material";
 import { useAppContext } from "../../context/AppContext";
 import { API_URL } from "../appconfig";
+import { axiosPost } from "../Axios/axiosMethods";
 
 const AnalysisForm = ({
   selectedStock,
@@ -50,7 +51,7 @@ const AnalysisForm = ({
     }
 
     try {
-      const response = await axios.post(`${API_URL}/api/${apiEndpoint}`, formData, {
+      const response = await axiosPost(`${API_URL}/api/${apiEndpoint}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

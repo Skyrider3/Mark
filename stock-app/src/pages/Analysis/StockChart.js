@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
 import { createChart, ColorType } from "lightweight-charts";
 import {
   Card,
@@ -20,6 +19,7 @@ import {
 } from "@mui/material";
 import { useAppContext } from "../../context/AppContext";
 import { API_URL } from "../appconfig";
+import { axiosGet } from "../Axios/axiosMethods";
 
 const StockChart = ({ selectedStock, onStockChange }) => {
   const [stockData, setStockData] = useState([]);
@@ -50,7 +50,7 @@ const StockChart = ({ selectedStock, onStockChange }) => {
       setLoading(true);
       setError("");
       try {
-        const response = await axios.get(
+        const response = await axiosGet(
           `${API_URL}/api/stock_data?symbol=${stockSymbol}&range=${range}`
         );
         setStockData(response.data);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { axiosPost } from "../Axios/axiosMethods";
 
 const StockChatInterface = () => {
   const [messages, setMessages] = useState([]);
@@ -13,7 +13,7 @@ const StockChatInterface = () => {
     setInput('');
 
     try {
-      const response = await axios.post('/api/stock-chat', { query: input });
+      const response = await axiosPost('/api/stock-chat', { query: input });
       const botMessage = { text: response.data.reply, sender: 'bot' };
       setMessages(messages => [...messages, botMessage]);
     } catch (error) {

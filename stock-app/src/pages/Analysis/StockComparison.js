@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import axios from 'axios';
 import { Card, CardContent, Typography, Box, TextField, Button, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { useAppContext } from '../../context/AppContext';
 import { API_URL } from "../appconfig";
+import { axiosGet } from '../Axios/axiosMethods';
 
 const StockComparison = () => {
   const [symbols, setSymbols] = useState('');
@@ -17,7 +17,7 @@ const StockComparison = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.get(`${API_URL}/api/stock_comparison?symbols=${symbols}&range=1M`);
+      const response = await axiosGet(`${API_URL}/api/stock_comparison?symbols=${symbols}&range=1M`);
       setComparisonData(response.data);
     } catch (error) {
       console.error('Error fetching comparison data:', error);

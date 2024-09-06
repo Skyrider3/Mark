@@ -1,8 +1,8 @@
 // src/components/Login.js
 import React, { useState } from 'react';
 import { TextField, Button, Typography, Box, Tabs, Tab } from '@mui/material';
-import axios from 'axios';
 import { API_URL } from "../appconfig";
+import { axiosPost } from '../pages/Axios/axiosMethods';
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState('');
@@ -15,7 +15,7 @@ const Login = ({ onLogin }) => {
     setError('');
     try {
       if (isLogin) {
-        const response = await axios.post(`${API_URL}/token`, new URLSearchParams({
+        const response = await axiosPost(`${API_URL}/token`, new URLSearchParams({
           'username': username,
           'password': password
         }), {
@@ -27,7 +27,7 @@ const Login = ({ onLogin }) => {
         onLogin();
       } else {
         // Registration
-        await axios.post(`${API_URL}/register`, { username, password });
+        await axiosPost(`${API_URL}/register`, { username, password });
         setError('Registration successful. Please log in.');
         setIsLogin(true);
       }

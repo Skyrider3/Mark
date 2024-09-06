@@ -7,8 +7,8 @@ import StockComparison from "./StockComparison";
 import ChatHistory from "./ChatHistory";
 import DataScienceQueryExecutor from "./DataScienceQueryExecutor";
 import NavBar from "../NavBar";
-import axios from "axios";
 import { API_URL } from "../appconfig";
+import { axiosGet, axiosPost } from "../Axios/axiosMethods";
 
 const AnalysisHome = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -125,7 +125,7 @@ const AnalysisHome = () => {
       const getExpertMenuItems = async () => {
         try {
           setLoading(true);
-          const response = await axios.get(`${API_URL}/api/financialgurus`);
+          const response = await axiosGet(`${API_URL}/api/financialgurus`);
           if (response.data) {
             const expertMenuItems = response.data.gurus.map((expertItem) => ({
               key: expertItem.name,
@@ -222,7 +222,7 @@ const AnalysisHome = () => {
           setLoading(true);
           const formData = new FormData();
           formData.append("stock", selectedStock);
-          const response = await axios.post(
+          const response = await axiosPost(
             `${API_URL}/api/AIAnalysis`,
             formData
           );

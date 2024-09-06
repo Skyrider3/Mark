@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardActions, Typography, TextField, Button } from '@mui/material';
-import axios from 'axios';
 import { API_URL } from "../appconfig";
+import { axiosGet, axiosGetWithParams } from '../pages/Axios/axiosMethods';
 
 const TeslaStockApp = () => {
   const [stockData, setStockData] = useState([]);
@@ -10,14 +10,14 @@ const TeslaStockApp = () => {
   const [chatHistory, setChatHistory] = useState([]);
 
   useEffect(() => {
-    axios.get(`${API_URL}/api/stock_data`)
+    axiosGet(`${API_URL}/api/stock_data`)
       .then(response => setStockData(response.data))
       .catch(error => console.error('Error fetching stock data:', error));
   }, []);
 
   const handleChatSubmit = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/chat`, {
+      const response = await axiosGetWithParams(`${API_URL}/api/chat`, {
         params: { message: chatInput }
       });
       setChatHistory([...chatHistory, { user: chatInput, bot: response.data }]);
