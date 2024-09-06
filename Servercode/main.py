@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Request, File, Uplo
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 import requests 
+import aiohttp
 import json
 import yfinance as yf
 import io
@@ -59,7 +60,7 @@ client = OpenAI(api_key="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")
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://cd26-2601-19b-b00-26d0-2c7b-5b88-3-296c.ngrok-free.app","http://localhost:3000","http://localhost:8000"],  # Add your frontend URL here
+    allow_origins=["http://localhost:3000","http://localhost:8000","https://cd26-2601-19b-b00-26d0-2c7b-5b88-3-296c.ngrok-free.app"],  # Add your frontend URL here
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -822,6 +823,215 @@ def parse_analysis_report(stock : str = Form(...)):
         analysis_result[heading] = content
 
     return analysis_result
+
+
+
+
+
+POLYGON_API_KEY = "nDUQqv3zEBdeZwmJUyHxiKg2lXpx_g0E"
+
+# for dashboard watch list
+@app.get("/api/watchlist_data")
+async def get_watchlist_data(symbols: str): # = Query(..., description="Comma-separated stock symbols")):
+    symbols_list = symbols.split(',')
+    watchlist_data = {}
+
+    async with aiohttp.ClientSession() as session:
+        for symbol in symbols_list:
+            url = f"https://api.polygon.io/v2/last/nbbo/{symbol}?apiKey={POLYGON_API_KEY}"
+            async with session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data['status'] == 'success':
+                        last_quote = data['results']
+                        watchlist_data[symbol] = {
+                            'price': last_quote['P'],
+                            'change_percent': ((last_quote['P'] - last_quote['p']) / last_quote['p']) * 100
+                        }
+                else:
+                    watchlist_data[symbol] = {'error': 'Failed to fetch data'}
+
+    return watchlist_data
+
+
+# for high volume stocks
+@app.get("/api/high_volume_stocks")
+async def get_high_volume_stocks():
+    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data['status'] == 'OK':
+                    # Sort tickers by volume and get top 5
+                    sorted_tickers = sorted(data['tickers'], key=lambda x: x['day']['v'], reverse=True)[:5]
+                    
+                    high_volume_stocks = []
+                    for ticker in sorted_tickers:
+                        stock_data = {
+                            'symbol': ticker['ticker'],
+                            'ask': ticker['lastQuote']['P'],
+                            'bid': ticker['lastQuote']['p'],
+                            'volume': ticker['day']['v']
+                        }
+                        high_volume_stocks.append(stock_data)
+                    
+                    return high_volume_stocks
+            
+            raise HTTPException(status_code=400, detail="Failed to fetch high volume stocks data")
+
+
+
+
+async def fetch_stock_data(symbols: List[str]):
+    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers={','.join(symbols)}&apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data['status'] == 'OK':
+                    return {ticker['ticker']: {
+                        'price': ticker['lastTrade']['p'],
+                        'change_percent': ticker['todaysChangePerc'],
+                        'volume': ticker['day']['v']
+                    } for ticker in data['tickers']}
+    return {}
+
+
+
+# for top tech stocks
+@app.get("/api/top_tech_stocks")
+async def get_top_tech_stocks():
+    tech_symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'FB', 'TSLA', 'NVDA', 'ADBE', 'INTC', 'CSCO']
+    return await fetch_stock_data(tech_symbols)
+
+
+
+# for top trending stocks
+@app.get("/api/top_trending_stocks")
+async def get_top_trending_stocks():
+    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data['status'] == 'OK':
+                    # Sort by percent change and get top 10
+                    sorted_tickers = sorted(data['tickers'], key=lambda x: abs(x['todaysChangePerc']), reverse=True)[:10]
+                    return {ticker['ticker']: {
+                        'price': ticker['lastTrade']['p'],
+                        'change_percent': ticker['todaysChangePerc'],
+                        'volume': ticker['day']['v']
+                    } for ticker in sorted_tickers}
+    return {}
+
+
+
+# for best buy stocks
+@app.get("/api/best_buy_stocks")
+async def get_best_buy_stocks():
+    url = f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                if data['status'] == 'OK':
+                    # Filter for stocks with positive change and sort by volume
+                    positive_change_tickers = [t for t in data['tickers'] if t['todaysChangePerc'] > 0]
+                    sorted_tickers = sorted(positive_change_tickers, key=lambda x: x['day']['v'], reverse=True)[:10]
+                    return {ticker['ticker']: {
+                        'price': ticker['lastTrade']['p'],
+                        'change_percent': ticker['todaysChangePerc'],
+                        'volume': ticker['day']['v']
+                    } for ticker in sorted_tickers}
+    return {}
+
+
+
+class AlertBase(BaseModel):
+    symbol: str
+    price: float
+    condition: str
+
+class AlertCreate(AlertBase):
+    pass
+
+class Alert(AlertBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+alerts = []
+alert_id_counter = 1
+
+async def fetch_stock_price(symbol: str):
+    url = f"https://api.polygon.io/v2/last/trade/{symbol}?apiKey={POLYGON_API_KEY}"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                data = await response.json()
+                return data['results']['p']
+    return None
+
+@app.post("/api/alerts", response_model=Alert)
+async def create_alert(alert: AlertCreate):
+    global alert_id_counter
+    new_alert = Alert(
+        id=alert_id_counter,
+        **alert.dict(),
+        created_at=datetime.now()
+    )
+    alerts.append(new_alert)
+    alert_id_counter += 1
+    return new_alert
+
+@app.get("/api/alerts", response_model=List[Alert])
+async def read_alerts():
+    return alerts
+
+@app.put("/api/alerts/{alert_id}", response_model=Alert)
+async def update_alert(alert_id: int, alert: AlertCreate):
+    for existing_alert in alerts:
+        if existing_alert.id == alert_id:
+            existing_alert.symbol = alert.symbol
+            existing_alert.price = alert.price
+            existing_alert.condition = alert.condition
+            return existing_alert
+    raise HTTPException(status_code=404, detail="Alert not found")
+
+@app.delete("/api/alerts/{alert_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_alert(alert_id: int):
+    global alerts
+    alerts = [alert for alert in alerts if alert.id != alert_id]
+    return None
+
+@app.get("/api/check_alerts")
+async def check_alerts():
+    triggered_alerts = []
+    for alert in alerts:
+        current_price = await fetch_stock_price(alert.symbol)
+        if current_price is not None:
+            if (alert.condition == 'above' and current_price > alert.price) or \
+               (alert.condition == 'below' and current_price < alert.price):
+                triggered_alerts.append({
+                    'alert': alert,
+                    'current_price': current_price
+                })
+    return triggered_alerts
+
+# Background task to periodically check alerts
+async def background_alert_checker():
+    while True:
+        await check_alerts()
+        await asyncio.sleep(60)  # Check every minute
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(background_alert_checker())
+
+
 
 
 if __name__ == "__main__":
