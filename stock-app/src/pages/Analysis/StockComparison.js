@@ -2,8 +2,7 @@ import React, { useState, useCallback } from 'react';
 import axios from 'axios';
 import { Card, CardContent, Typography, Box, TextField, Button, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { useAppContext } from '../../context/AppContext';
-
-const API_URL = 'http://localhost:8000';
+import { API_URL } from "../appconfig";
 
 const StockComparison = () => {
   const [symbols, setSymbols] = useState('');

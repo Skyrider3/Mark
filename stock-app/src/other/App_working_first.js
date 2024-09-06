@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardActions, Typography, TextField, Button } from '@mui/material';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:8000';
+import { API_URL } from "../appconfig";
 
 const TeslaStockApp = () => {
   const [stockData, setStockData] = useState([]);

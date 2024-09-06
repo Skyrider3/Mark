@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { List, ListItem, ListItemText, TextField, Button, Typography, Box } from '@mui/material';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:8000';
+import { API_URL } from "../appconfig";
 
 const Watchlist = () => {
   const [watchlist, setWatchlist] = useState([]);

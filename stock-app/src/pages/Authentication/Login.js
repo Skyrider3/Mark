@@ -15,8 +15,7 @@ import axios from "axios";
 import landing from "../../image/landing.jpg";
 import { styled } from "@mui/system";
 import { useNavigate } from 'react-router-dom';
-
-const API_URL = "http://localhost:8000";
+import { API_URL } from "../appconfig";
 
 const BackgroundImage = styled("div")(({ theme }) => ({
   "&::before": {

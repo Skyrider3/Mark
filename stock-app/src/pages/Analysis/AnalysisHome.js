@@ -8,8 +8,7 @@ import ChatHistory from "./ChatHistory";
 import DataScienceQueryExecutor from "./DataScienceQueryExecutor";
 import NavBar from "../NavBar";
 import axios from "axios";
-
-const API_URL = "http://localhost:8000";
+import { API_URL } from "../appconfig";
 
 const AnalysisHome = () => {
   const [currentUser, setCurrentUser] = useState(null);

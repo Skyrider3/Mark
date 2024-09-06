@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { TextField, Button, Typography, Box, Tabs, Tab } from '@mui/material';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:8000';
+import { API_URL } from "../appconfig";
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState('');

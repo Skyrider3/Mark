@@ -19,8 +19,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import { useAppContext } from "../../context/AppContext";
-
-const API_URL = "http://localhost:8000";
+import { API_URL } from "../appconfig";
 
 const StockChart = ({ selectedStock, onStockChange }) => {
   const [stockData, setStockData] = useState([]);

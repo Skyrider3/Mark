@@ -13,8 +13,7 @@ import {
   Step,
   StepLabel,
 } from "@mui/material";
-
-const API_URL = "http://localhost:8000";
+import { API_URL } from "../appconfig";
 
 const DataScienceQueryExecutor = ({selectedStock}) => {
   const [query, setQuery] = useState("");

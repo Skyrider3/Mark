@@ -16,8 +16,7 @@ import {
   Alert,
 } from "@mui/material";
 import { useAppContext } from "../../context/AppContext";
-
-const API_URL = "http://localhost:8000";
+import { API_URL } from "../appconfig";
 
 const AnalysisForm = ({
   selectedStock,
