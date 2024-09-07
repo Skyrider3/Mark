@@ -1,0 +1,5 @@
+Sept 14, 2024:
+- fix duplicate backend calls.
+- integrate with backend.
+- add stock detail page.
+- add buy/sell button to stock analysis page.
