@@ -1,0 +1,28 @@
+# Frontend 
+1) For now, Aditya testing on his local machine. For hosting the fronend we can host it in AWS Amplify
+2) Continous fixes and Integration pending from Aditya
+3) We had docker containers ready to deploy on cloud 
+
+# Serverside
+1) For now, we are deploying the docekr image in AWS ECR and EC2 instance to run the image, to get public web server  and  give that address to fronend testing on Aditya local machine.
+2) We had docker containers ready to deploy on cloud 
+
+
+# If you are using MacBookpro  ----- Do this for both front end and serverside codebase
+
+1. Create and use a new builder that supports multi-architecture builds:
+docker buildx create --name mybuilder --use
+
+2. Build and push the multi-architecture image:  -- chnage this for frontend 
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t 590183945996.dkr.ecr.us-east-1.amazonaws.com/backend:latest \
+  --push .
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t 590183945996.dkr.ecr.us-east-1.amazonaws.com/frontend:latest \
+  --push .
+3. Make sure to run this command from the directory containing your Dockerfile.
+If you haven't already logged in to your ECR repository, do so before pushing:
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 590183945996.dkr.ecr.us-east-1.amazonaws.com
+
+4. Verify that your image was pushed successfully:
+aws ecr describe-images --repository-name backend --region us-east-1

@@ -1,17 +1,22 @@
 version: '3'
+
 services:
   frontend:
-    build: ./react-app
+    build: 
+      context: ./stock-app  # Path to your frontend code
+      dockerfile: ProfitableTraderFrontend.Dockerfile # Name of the Dockerfile if it's not the default "Dockerfile"
     ports:
       - "3000:3000"
     environment:
-      - REACT_APP_API_URL=http://backend:8000
+      - REACT_APP_API_URL=http://backend:8000  # URL of the backend service
     depends_on:
       - backend
 
   backend:
-    build: ./app
+    build: 
+      context: ./Servercode  # Path to your backend code
+      dockerfile: ProfitableTraderBackend.dockerfile # Name of the Dockerfile if it's not the default "Dockerfile"
     ports:
       - "8000:8000"
     environment:
-      - ORIGINS=http://localhost:3000,http://frontend:3000
+      - ORIGINS=http://localhost:3000,http://frontend:3000  # Allowed origins for CORS

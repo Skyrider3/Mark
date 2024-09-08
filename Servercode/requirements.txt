@@ -1,0 +1,33 @@
+# Core dependencies
+fastapi[all]
+uvicorn[standard]
+pydantic
+sqlalchemy
+databases[sqlite]
+passlib[bcrypt] 
+python-jose[cryptography]
+yfinance
+
+# Data & Visualization
+pandas
+matplotlib
+scikit-learn
+
+# NLP & AI
+textblob
+openai
+llama_index
+llama_agents
+llama_index.llms.ollama
+
+# # Vector Databases & Embeddings
+# llama-index-vector-stores-qdrant
+# llama_index.embeddings.ollama-0.1.2
+
+# Utilities
+PyPDF2
+pycryptodome
+ngrok
+
+
+

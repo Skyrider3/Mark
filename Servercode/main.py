@@ -39,8 +39,6 @@ import asyncio
 import matplotlib
 matplotlib.use('Agg')
 
-# import matplotlib as mpl
-# mpl.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Helvetica', 'Arial']
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -60,7 +58,7 @@ client = OpenAI(api_key="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")
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","http://localhost:8000","https://cd26-2601-19b-b00-26d0-2c7b-5b88-3-296c.ngrok-free.app"],  # Add your frontend URL here
+    allow_origins=["https://cd26-2601-19b-b00-26d0-2c7b-5b88-3-296c.ngrok-free.app","*"],  # Add your frontend URL here "http://localhost:3000","http://localhost:8000",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -162,6 +160,21 @@ class AnalysisRequest(BaseModel):
 class DataScienceQuery(BaseModel):
     query: str
     datasets: List[str]  # List of base64 encoded CSV data
+
+class AlertBase(BaseModel):
+    symbol: str
+    price: float
+    condition: str
+
+class AlertCreate(AlertBase):
+    pass
+
+class Alert(AlertBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
 
 
 # Authentication functions
@@ -947,21 +960,6 @@ async def get_best_buy_stocks():
     return {}
 
 
-
-class AlertBase(BaseModel):
-    symbol: str
-    price: float
-    condition: str
-
-class AlertCreate(AlertBase):
-    pass
-
-class Alert(AlertBase):
-    id: int
-    created_at: datetime
-
-    class Config:
-        orm_mode = True
 
 alerts = []
 alert_id_counter = 1
