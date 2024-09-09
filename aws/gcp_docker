@@ -1,0 +1,166 @@
+# Project Number : 50578596032
+
+# Project ID : anpciai
+# web server commands and procedure
+
+# gcloud auth configure-docker
+
+# docker build -t gcr.io/anpciai/fastapi-app:v1 .
+
+# docker push gcr.io/anpciai/fastapi-app:v1
+
+# Step1 
+## docker buildx build --platform linux/amd64,linux/arm64 -t gcr.io/anpciai/fastapi-ngrok-app:v1 . --push
+
+# Step 2
+<!-- gcloud compute instances create-with-container fastapi-ngrok-instance \
+  --container-image gcr.io/anpciai/fastapi-ngrok-app:v1 \
+  --machine-type e2-micro \
+  --tags=http-server,https-server \
+  --zone=us-central1-a -->
+
+### To check docker services
+# docker exec $(docker ps -q) ps aux
+
+
+### To check compute instance
+# gcloud compute instances get-serial-port-output fastapi-ngrok-instance
+
+
+<!-- gcloud compute instances update-container fastapi-ngrok-instance \
+  --container-image gcr.io/anpciai/fastapi-ngrok-app:v1 \
+  --zone=us-central1-a -->
+
+
+
+
+
+<!-- gcloud compute instances create-with-container fastapi-ngrok-instance \
+  --container-image gcr.io/anpciai/fastapi-ngrok-app:v1 \
+  --machine-type e2-micro \
+  --tags=http-server,https-server \
+  --zone=us-central1-a -->
+
+# generates 
+<!-- Created [https://www.googleapis.com/compute/v1/projects/anpciai/zones/us-central1-a/instances/fastapi-ngrok-instance].
+NAME                    ZONE           MACHINE_TYPE  PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP    STATUS
+fastapi-ngrok-instance  us-central1-a  e2-micro                   10.128.0.4   35.193.105.77  RUNNING -->
+
+# got the External IP : 
+
+
+Deploying just the FastAPI backend on Google Cloud Platform (GCP). We'll use Google Compute Engine (GCE) to run your containerized FastAPI application. Here's a step-by-step guide:
+
+1. Set up GCP:
+   - Create a GCP account if you haven't already
+   - Create a new project in the GCP Console
+
+2. Install and configure Google Cloud SDK:
+   - Download and install the SDK from https://cloud.google.com/sdk/docs/install
+   - Run `gcloud init` to configure the SDK
+
+3. Build and push your Docker image to Google Container Registry (GCR):
+
+   a. Enable the Container Registry API in your GCP project.
+
+   b. Configure Docker to use gcloud as a credential helper:
+      ```
+      gcloud auth configure-docker
+      ```
+
+   c. Build your Docker image:
+      ```
+      docker build -t gcr.io/[PROJECT-ID]/fastapi-app:v1 .
+      ```
+      Replace [PROJECT-ID] with your actual GCP project ID.
+
+   d. Push the image to GCR:
+      ```
+      docker push gcr.io/[PROJECT-ID]/fastapi-app:v1
+      ```
+4. Create a Compute Engine instance:
+
+   a. Enable the Compute Engine API in your GCP project.
+
+   b. Create a new instance using the following command:
+      ```
+      gcloud compute instances create-with-container fastapi-instance \
+        --container-image gcr.io/[PROJECT-ID]/fastapi-app:v1 \
+        --machine-type e2-micro \
+        --tags=http-server,https-server \
+        --zone=us-central1-a
+      ```
+
+5. Set up firewall rules:
+   ```
+   gcloud compute firewall-rules create allow-http --allow tcp:80
+   gcloud compute firewall-rules create allow-https --allow tcp:443
+   ```
+
+6. Get the external IP of your instance:
+   ```
+   gcloud compute instances describe fastapi-instance --zone=us-central1-a \
+     --format='get(networkInterfaces[0].accessConfigs[0].natIP)'
+   ```
+
+7. Update your FastAPI application:
+   
+   a. Make sure your FastAPI app is binding to 0.0.0.0 to accept external connections:
+      ```python
+      if __name__ == "__main__":
+          import uvicorn
+          uvicorn.run(app, host="0.0.0.0", port=8000)
+      ```
+
+   b. Update CORS settings if necessary:
+      ```python
+      from fastapi.middleware.cors import CORSMiddleware
+
+      app.add_middleware(
+          CORSMiddleware,
+          allow_origins=["*"],  # Update this with your frontend URL in production
+          allow_credentials=True,
+          allow_methods=["*"],
+          allow_headers=["*"],
+      )
+      ```
+
+8. (Optional) Set up a custom domain:
+   - If you have a custom domain, you can set it up to point to your instance's IP address.
+   - You might want to set up HTTPS using Let's Encrypt and Certbot.
+
+9. (Optional) Set up a startup script to pull the latest image on instance restart:
+   
+   a. Create a startup script file `startup-script.sh`:
+      ```bash
+      #!/bin/bash
+      docker pull gcr.io/[PROJECT-ID]/fastapi-app:v1
+      docker stop fastapi-container || true
+      docker rm fastapi-container || true
+      docker run -d --name fastapi-container -p 80:8000 gcr.io/[PROJECT-ID]/fastapi-app:v1
+      ```
+
+   b. Update your instance to use this startup script:
+      ```
+      gcloud compute instances update fastapi-instance \
+        --metadata-from-file startup-script=startup-script.sh \
+        --zone=us-central1-a
+      ```
+
+Now your FastAPI backend should be running on GCP. You can access it via the instance's IP address or your custom domain if you set one up.
+
+Remember to:
+- Keep your GCR image up to date as you make changes to your application.
+- Monitor your GCP usage to manage costs.
+- Set up proper authentication and authorization for your API in production.
+- Consider using Cloud Run instead of Compute Engine if you want a more managed, scalable solution.
+
+This setup gives you a good starting point for running your FastAPI backend on GCP. You can further optimize and secure it based on your specific needs.
+
+
+
+gcloud compute instances create-with-container fastapi-ngrok-instance \
+  --container-image gcr.io/anpciai/fastapi-ngrok-app:v1 \
+  --machine-type e2-micro \
+  --tags=http-server,https-server \
+  --zone=us-central1-a
