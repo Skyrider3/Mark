@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
 import {
-  Container, Paper,
+  Container,
+  Paper,
   Card,
   CardContent,
   Typography,
-  Box,
   Button,
   FormControl,
-  CircularProgress,
-  Alert,
-  TextField,
   Select,
   MenuItem,
   Grid,
   List,
   ListItem,
+  styled,
   ListItemText,
 } from "@mui/material";
 import Login from "../Authentication/Login";
@@ -59,6 +57,28 @@ const AnalysisHome = () => {
     { key: "AIAnalysis", label: "AI Comprehensive Analysis" },
   ];
 
+  const StyledButton = styled(Button)(({ theme, active }) => ({
+    textTransform: 'none',
+    fontWeight: 500,
+    borderRadius: theme.shape.borderRadius * 2,
+    padding: theme.spacing(1, 2),
+    transition: 'all 0.3s ease-in-out',
+    backgroundColor: theme.palette.grey[100], // Default background color for inactive buttons
+    color: theme.palette.text.primary, // Default text color for inactive buttons
+    '&:hover': {
+      transform: 'translateY(-2px)',
+      boxShadow: theme.shadows[4],
+      backgroundColor: theme.palette.grey[200], // Slightly darker on hover for inactive buttons
+    },
+    ...(active && {
+      backgroundColor: theme.palette.primary.main,
+      color: theme.palette.primary.contrastText,
+      '&:hover': {
+        backgroundColor: theme.palette.primary.dark,
+      },
+    }),
+  }));
+
   const handleCategoryClick = (category) => {
     setActiveCategory(category === activeCategory ? null : category);
   };
@@ -80,63 +100,65 @@ const AnalysisHome = () => {
     setExpertChatHistory((prevHistory) => [...prevHistory, message]);
   };
 
-  const TrendingStocks = () =>{
+  const TrendingStocks = () => {
     const handleChange = (event) => {
       setSelectedOption(event.target.value);
     };
-    return (        <Card sx={{ height: "100%" }}>
-      <FormControl fullWidth>
-        <Select
-          value={selectedOption}
-          onChange={handleChange}
-          displayEmpty
-          inputProps={{ "aria-label": "Without label" }}
-        >
-          <MenuItem value="highVolume">High Volume Stocks</MenuItem>
-          <MenuItem value="topTech">Top Tech Stocks</MenuItem>
-          <MenuItem value="topTrending">Top Trending Stocks</MenuItem>
-          <MenuItem value="bestBuy">Best Buy Stocks</MenuItem>
-        </Select>
-      </FormControl>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          {stockOptions[selectedOption].title}
-        </Typography>
-        <List>
-          {stockOptions[selectedOption].data.map((stock, index) => (
-            <ListItem
-              key={index}
-              divider={index < highVolumeStocks.length - 1}
-            >
-              <ListItemText
-                primary={stock.name}
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      component="span"
-                      variant="body2"
-                      color="text.primary"
-                    >
-                      Ask: ${stock.ask.toFixed(2)} | Bid: $
-                      {stock.bid.toFixed(2)}
-                    </Typography>
-                    <br />
-                    <Typography
-                      component="span"
-                      variant="body2"
-                      color="text.secondary"
-                    >
-                      Volume: {stock.volume.toLocaleString()}
-                    </Typography>
-                  </React.Fragment>
-                }
-              />
-            </ListItem>
-          ))}
-        </List>
-      </CardContent>
-    </Card>);
-  }
+    return (
+      <Card sx={{ height: "100%" }}>
+        <FormControl fullWidth>
+          <Select
+            value={selectedOption}
+            onChange={handleChange}
+            displayEmpty
+            inputProps={{ "aria-label": "Without label" }}
+          >
+            <MenuItem value="highVolume">High Volume Stocks</MenuItem>
+            <MenuItem value="topTech">Top Tech Stocks</MenuItem>
+            <MenuItem value="topTrending">Top Trending Stocks</MenuItem>
+            <MenuItem value="bestBuy">Best Buy Stocks</MenuItem>
+          </Select>
+        </FormControl>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            {stockOptions[selectedOption].title}
+          </Typography>
+          <List>
+            {stockOptions[selectedOption].data.map((stock, index) => (
+              <ListItem
+                key={index}
+                divider={index < highVolumeStocks.length - 1}
+              >
+                <ListItemText
+                  primary={stock.name}
+                  secondary={
+                    <React.Fragment>
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        color="text.primary"
+                      >
+                        Ask: ${stock.ask.toFixed(2)} | Bid: $
+                        {stock.bid.toFixed(2)}
+                      </Typography>
+                      <br />
+                      <Typography
+                        component="span"
+                        variant="body2"
+                        color="text.secondary"
+                      >
+                        Volume: {stock.volume.toLocaleString()}
+                      </Typography>
+                    </React.Fragment>
+                  }
+                />
+              </ListItem>
+            ))}
+          </List>
+        </CardContent>
+      </Card>
+    );
+  };
 
   const StockCompare = () => {
     return (
@@ -296,7 +318,7 @@ const AnalysisHome = () => {
             width: "100%",
           }}
         >
-          <DataScienceQueryExecutor selectedStock={selectedStock}/>
+          <DataScienceQueryExecutor selectedStock={selectedStock} />
         </Paper>
       </Grid>
     );
@@ -379,31 +401,40 @@ const AnalysisHome = () => {
                   Stock Chart
                 </Typography>
                 <Grid container spacing={2}>
-                <Grid item xs={12} md={8}>
-                <StockChart selectedStock={selectedStock} onStockChange={handleStockSelect}/>
+                  <Grid item xs={12} md={8}>
+                    <StockChart
+                      selectedStock={selectedStock}
+                      onStockChange={handleStockSelect}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TrendingStocks />
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={4}>
-                  <TrendingStocks/>
-                  </Grid>
-                  </Grid>
               </Paper>
             </Grid>
 
             <Grid item xs={12}>
-              <Grid container spacing={2} justifyContent="center">
+              <Grid
+                container
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
+                  gap: 1,
+                }}
+              >
                 {categories.map((category) => (
-                  <Grid item key={category.key}>
-                    <Button
-                      variant={
-                        activeCategory === category.key
-                          ? "contained"
-                          : "outlined"
-                      }
-                      onClick={() => handleCategoryClick(category.key)}
-                    >
-                      {category.label}
-                    </Button>
-                  </Grid>
+                  <StyledButton
+                    key={category.key}
+                    variant={
+                      activeCategory === category.key ? "contained" : "outlined"
+                    }
+                    onClick={() => handleCategoryClick(category.key)}
+                    active={activeCategory === category.key}
+                  >
+                    {category.label}
+                  </StyledButton>
                 ))}
               </Grid>
             </Grid>
