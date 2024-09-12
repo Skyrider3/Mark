@@ -28,22 +28,7 @@ const StockChart = ({ selectedStock, onStockChange }) => {
   const { error, setError, loading, setLoading } = useAppContext();
   const chartContainerRef = React.useRef();
   const [debugInfo, setDebugInfo] = useState("");
-  const [selectedOption, setSelectedOption] = useState("highVolume");
 
-  const highVolumeStocks = [
-    { name: "AAPL", ask: 150.25, bid: 150.2, volume: 1000000 },
-    { name: "GOOGL", ask: 2800.5, bid: 2800.25, volume: 500000 },
-    { name: "MSFT", ask: 300.75, bid: 300.7, volume: 750000 },
-    { name: "AMZN", ask: 3400.0, bid: 3399.5, volume: 300000 },
-    { name: "FB", ask: 330.25, bid: 330.0, volume: 600000 },
-  ];
-
-  const stockOptions = {
-    highVolume: { title: "High Volume Stocks", data: highVolumeStocks },
-    topTech: { title: "Top Tech Stocks", data: highVolumeStocks },
-    topTrending: { title: "Top Trending Stocks", data: highVolumeStocks },
-    bestBuy: { title: "Best Buy Stocks", data: highVolumeStocks },
-  };
 
   const fetchStockData = useCallback(
     async (range, stockSymbol) => {
@@ -153,13 +138,7 @@ const StockChart = ({ selectedStock, onStockChange }) => {
     setDateRange(range);
   };
 
-  const handleChange = (event) => {
-    setSelectedOption(event.target.value);
-  };
-
   return (
-    <Grid container spacing={2}>
-      <Grid item xs={12} md={8}>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -227,62 +206,6 @@ const StockChart = ({ selectedStock, onStockChange }) => {
             </Typography>
           </CardContent>
         </Card>
-      </Grid>
-      <Grid item xs={12} md={4}>
-        <Card sx={{ height: "100%" }}>
-          <FormControl fullWidth>
-            <Select
-              value={selectedOption}
-              onChange={handleChange}
-              displayEmpty
-              inputProps={{ "aria-label": "Without label" }}
-            >
-              <MenuItem value="highVolume">High Volume Stocks</MenuItem>
-              <MenuItem value="topTech">Top Tech Stocks</MenuItem>
-              <MenuItem value="topTrending">Top Trending Stocks</MenuItem>
-              <MenuItem value="bestBuy">Best Buy Stocks</MenuItem>
-            </Select>
-          </FormControl>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              {stockOptions[selectedOption].title}
-            </Typography>
-            <List>
-              {stockOptions[selectedOption].data.map((stock, index) => (
-                <ListItem
-                  key={index}
-                  divider={index < highVolumeStocks.length - 1}
-                >
-                  <ListItemText
-                    primary={stock.name}
-                    secondary={
-                      <React.Fragment>
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="text.primary"
-                        >
-                          Ask: ${stock.ask.toFixed(2)} | Bid: $
-                          {stock.bid.toFixed(2)}
-                        </Typography>
-                        <br />
-                        <Typography
-                          component="span"
-                          variant="body2"
-                          color="text.secondary"
-                        >
-                          Volume: {stock.volume.toLocaleString()}
-                        </Typography>
-                      </React.Fragment>
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
   );
 };
 
