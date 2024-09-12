@@ -23,9 +23,9 @@ const DashboardPage = () => {
   ];
 
   const cryptoData = [
-    { name: "BTC", value: 64058.54, change: -0.1 },
-    { name: "ETH", value: 2750.42, change: -0.56 },
-    { name: "LTC", value: 64.62, change: -2.17 },
+    { name: "BTC-USD", value: 64058.54, change: -0.1 },
+    { name: "ETH-USD", value: 2750.42, change: -0.56 },
+    { name: "LTC-USD", value: 64.62, change: -2.17 },
   ];
 
   const stockData = [
