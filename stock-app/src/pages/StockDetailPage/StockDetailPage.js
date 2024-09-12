@@ -8,8 +8,6 @@ const StockDetailPage = () => {
   const { symbol } = useParams();
   const [stockData, setStockData] = useState(null);
   const [newsData, setNewsData] = useState([]);
-  const [chartData, setChartData] = useState([]);
-  const [selectedTimeframe, setSelectedTimeframe] = useState("1year");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -27,46 +25,13 @@ const StockDetailPage = () => {
         );
         const stockResult = await stockResponse.json();
 
-        if (!stockResponse.ok) {
-          // throw new Error("Failed to fetch stock data");
-        }
-
-        if (stockResult.length === 0) {
-          // throw new Error("No data available for this stock");
-        }
-
         setStockData(stockResult[0]);
 
-        // Fetch chart data
-        const chartResponse = await fetch(
-          `https://financialmodelingprep.com/api/v3/historical-price-full/${symbol}?timeseries=${getTimeframeDays(
-            selectedTimeframe
-          )}&apikey=${API_KEY}`
-        );
-        const chartResult = await chartResponse.json();
-
-        if (!chartResponse.ok) {
-          throw new Error("Failed to fetch chart data");
-        }
-
-        const formattedChartData = chartResult.historical
-          .map((item) => ({
-            date: new Date(item.date).getTime(),
-            open: item.open,
-            high: item.high,
-            low: item.low,
-            close: item.close,
-          }))
-          .reverse();
-
-        setChartData(formattedChartData);
-
+        // fetch news data
         const newsResponse = await fetch(`https://financialmodelingprep.com/api/v3/stock_news?tickers=${symbol}&limit=5&apikey=${API_KEY}`);
         const newsResult = await newsResponse.json();
 
-        if (!newsResponse.ok) {
-          // throw new Error('Failed to fetch news data');
-        }
+        setNewsData(newsResult);
 
         setLoading(false);
       } catch (error) {
@@ -77,29 +42,14 @@ const StockDetailPage = () => {
     };
 
     fetchStockData();
-  }, [symbol, selectedTimeframe, API_KEY]);
+  }, [symbol, API_KEY]);
 
-  const getTimeframeDays = (timeframe) => {
-    switch (timeframe) {
-      case "1month":
-        return 30;
-      case "3months":
-        return 90;
-      case "6months":
-        return 180;
-      case "1year":
-        return 365;
-      case "2years":
-        return 730;
-      default:
-        return 365;
-    }
-  };
+
 
   if (loading) return <div className="text-center mt-8">Loading...</div>;
   if (error)
     return <div className="text-center mt-8 text-red-500">{error}</div>;
-  if (!stockData || chartData.length === 0)
+  if (!stockData)
     return (
       <div className="text-center mt-8">No data available for this stock.</div>
     );
@@ -112,7 +62,9 @@ const StockDetailPage = () => {
           {stockData.companyName} ({stockData.symbol})
         </h1>
 
+        <div className="grid grid-cols-1 gap-4 mb-4">
         <StockChart selectedStock={'tsla'} onStockChange={()=>{}}/>
+          </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-white shadow rounded-lg p-4">
