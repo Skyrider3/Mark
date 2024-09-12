@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const axiosPost = async (url, body, headers) => {
-    return await axios.get(url, body,  {headers: {...headers, "ngrok-skip-browser-warning": "true"}});
+    return await axios.post(url, body,  {headers: {...headers, "ngrok-skip-browser-warning": "true"}});
 };
 
 export const axiosGet = async (url, headers) => {
