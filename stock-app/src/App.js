@@ -21,6 +21,7 @@ import SettingsPrivacy from "./pages/Account/SettingsPrivacy";
 import GiveFeedback from "./pages/Account/GiveFeedback";
 import HelpSupport from "./pages/Account/HelpSupport";
 import NotificationsPage from "./pages/Account/Notifications";
+import StockGraph from "./pages/Analysis/StockGraph";
 
 const theme = createTheme({
   palette: {
@@ -70,8 +71,8 @@ function App() {
             <Route path="/account-profile" element={<SettingsPrivacy />} />
             <Route path="/feedback" element={<GiveFeedback />} />
             <Route path="/help" element={<HelpSupport />} />    
-            <Route path="/notifications" element={<NotificationsPage />} />    
-
+            <Route path="/notifications" element={<NotificationsPage />} />  
+            <Route path="/stockgraph" element={<StockGraph/>}/>  
           </Routes>
         </Router>
       </ThemeProvider>

@@ -55,7 +55,6 @@ const AnalysisHome = () => {
     { key: "interactiveAi", label: "Interactive AI Analysis" },
     { key: "chatAnalyist", label: "Chat with Analyst Expert" },
     { key: "AIAnalysis", label: "AI Comprehensive Analysis" },
-    { key: "StockGraph", label: "Stock Graph" },
   ];
 
   const StyledButton = styled(Button)(({ theme, active }) => ({
@@ -368,45 +367,6 @@ const AnalysisHome = () => {
     );
   };
 
-  const StockGraph = () => {
-    const [htmlContent, setHtmlContent] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-      const getStockGraph = async () => {
-        try {
-          setLoading(true);
-          const response = await axiosGet(
-            `${API_URL}/map`
-          );
-          if (response.data) {
-            setHtmlContent(response.data);
-          }
-        } catch (e) {
-          console.error("Error fetching stock graph data", e);
-          setError("Failed to load stock graph data");
-        } finally {
-          setLoading(false);
-        }
-      };
-      getStockGraph();
-    }, []);
-    if (loading) return <div>Loading data...</div>;
-    if (error) return <div>Error: {error}</div>;
-
-    return (
-      <>
-      {htmlContent && (
-        <div
-          dangerouslySetInnerHTML={{ __html: htmlContent }}
-          className="border p-4 rounded"
-        />
-      )}
-      </>
-    );
-  }
-
   const renderActiveComponent = () => {
     switch (activeCategory) {
       case "chatStock":
@@ -419,8 +379,6 @@ const AnalysisHome = () => {
         return <ExpertChat />;
       case "AIAnalysis":
         return <ComprehensieAnalysis />;
-      case "StockGraph":
-          return <StockGraph />;
       default:
         return null;
     }

@@ -49,6 +49,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <nav>
           <SidebarItem icon="dashboard" text="Dashboard" path="/dashboard" />
           <SidebarItem icon="analysis" text="Analysis" path="/analysis" />
+          <SidebarItem icon="journal" text="Stock Graph" path="/stockgraph" />
           <SidebarItem icon="news" text="News" path="/news" />
           <SidebarItem icon="history" text="History" path="/history" />
           <SidebarItem icon="journal" text="Journal" path="/journal" />
