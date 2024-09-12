@@ -38,8 +38,6 @@ from functools import partial
 import asyncio
 import matplotlib
 matplotlib.use('Agg')
-from fastapi.responses import StreamingResponse
-from ollama import AsyncClient
 
 
 
@@ -748,94 +746,9 @@ async def llama3(stock: str = Form(...), type: str = Form(...), request: str = F
     return {"result": report_text}
 
 
-# @app.post("/api/AIAnalysis")
-# def parse_analysis_report(stock : str = Form(...)):
-#     url = "http://localhost:11434/api/chat"
-#     # Fetch historical data (e.g., 5 years)
-#     stock_data = yf.download(stock, period="5y")
-
-#     prompt = f"""
-#         Here is the historical stock data for stock ticker {stock}: {stock_data.to_string()}
-#         **Fundamental Analysis Report**
-
-#         **Industry Overview:**
-#         Please provide a brief overview of the [industry/sector] industry, including its current trends, challenges, and outlook.
-
-#         **Market Position:**
-#         What is the company's current market position within the [industry/sector], and how does it compare to its competitors?
-
-#         **Competitive Advantages:**
-#         What are the company's unique competitive advantages, and how do they differentiate themselves from their competitors?
-
-#         **Economic Moat Analysis:**
-#         What are the company's sustainable competitive advantages that protect its market share and profitability?
-
-#         **Company Financials:**
-#         Please provide a detailed analysis of the company's financial performance, including:
-
-#         * Revenue and profit trends: What are the company's revenue and profit growth rates over the past 5 years, and what are the main drivers of this growth? **Also, calculate the average revenue growth rate over this period.** 
-#         * Balance sheet health: What is the company's current financial health, including its debt-to-equity ratio, cash reserves, and other key metrics?
-#         * Cash flow analysis: How does the company generate cash, and what are its cash flow trends over the past 5 years?
-#         * Key financial ratios: What are the company's key financial ratios, such as P/E, P/B, and Debt-to-Equity, and how do they compare to industry averages?
-
-#         **Company Analysis:**
-#         Please provide an analysis of the company's management quality and track record, corporate governance, business model sustainability, and product/service pipeline.
-
-#         **Risk Analysis:**
-#         What are the company's main risks, including market risks, operational risks, financial risks, and regulatory risks?
-#         **Additionally, analyze the historical xvolatility of the company's stock price to assess its risk profile.**
-
-#         **Future Growth Analysis:**
-#         What are the company's opportunities for future growth, including market expansion opportunities, potential for innovation, strategic partnerships or acquisitions, and long-term industry trends?
-
-#         **Quarterly/Seasonal Monitoring Checklist:**
-#         Please provide a quarterly/seasonal monitoring checklist that includes key metrics to track, such as:
-
-#         * Revenue growth rate
-#         * Profit margins
-#         * Customer acquisition costs
-#         * Inventory turnover
-#         * Debt levels
-#         * Cash reserves
-#         * R&D spending
-#         * Market share changes
-
-#         """
-#     # print ("for this {company} do the {agentName} analysis and give me a report in this format" + prompt)
-#     data = {
-#         "model": "llama3",
-#         "messages": [
-#             {
-#                 "role": "user",
-#                 "content": f"for this {stock} do the analysis and give me a report in this format" + prompt
-#             }
-#         ],
-#         "stream": False
-#     }
-#     headers = {
-#         'Content-Type': 'application/json'
-#     }
-
-#     response = requests.post(url, headers=headers, json=data)
-
-#     report_text = response.json() ['message'] ['content']
-
-#     analysis_result = {}
-#     sections = re.split(r'\*\*(.+?)\*\*\n', report_text)  # Split by double asterisks (**)
-
-#     # The first element will be empty or contain the historical data, so we skip it
-#     for i in range(1, len(sections), 2):
-#         heading = sections[i].strip()
-#         heading = heading.replace("*", "")
-#         content = sections[i + 1].strip()
-#         analysis_result[heading] = content
-
-#     return analysis_result
-
-
-
 @app.post("/api/AIAnalysis")
-async def parse_analysis_report(stock: str = Form(...)):
+def parse_analysis_report(stock : str = Form(...)):
+    url = "http://localhost:11434/api/chat"
     # Fetch historical data (e.g., 5 years)
     stock_data = yf.download(stock, period="5y")
 
@@ -886,16 +799,40 @@ async def parse_analysis_report(stock: str = Form(...)):
         * Market share changes
 
         """
+    # print ("for this {company} do the {agentName} analysis and give me a report in this format" + prompt)
+    data = {
+        "model": "llama3",
+        "messages": [
+            {
+                "role": "user",
+                "content": f"for this {stock} do the analysis and give me a report in this format" + prompt
+            }
+        ],
+        "stream": False
+    }
+    headers = {
+        'Content-Type': 'application/json'
+    }
 
-    async def generate():
-        message = {
-            "role": "user",
-            "content": f"for this {stock} do the analysis and give me a report in this format" + prompt
-        }
-        async for part in await AsyncClient().chat(model='llama3.1', messages=[message], stream=True):
-            yield part['message']['content']
+    response = requests.post(url, headers=headers, json=data)
 
-    return StreamingResponse(generate(), media_type="text/plain")
+    report_text = response.json() ['message'] ['content']
+
+    analysis_result = {}
+    sections = re.split(r'\*\*(.+?)\*\*\n', report_text)  # Split by double asterisks (**)
+
+    # The first element will be empty or contain the historical data, so we skip it
+    for i in range(1, len(sections), 2):
+        heading = sections[i].strip()
+        heading = heading.replace("*", "")
+        content = sections[i + 1].strip()
+        analysis_result[heading] = content
+
+    return analysis_result
+
+
+
+
 
 POLYGON_API_KEY = "nDUQqv3zEBdeZwmJUyHxiKg2lXpx_g0E"
 
