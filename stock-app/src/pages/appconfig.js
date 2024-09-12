@@ -1,1 +1,1 @@
-export const API_URL ="http://localhost:8000"; //"https://795c-34-136-60-84.ngrok-free.app",;
+export const API_URL ="https://vrwgv9sppu.us-east-1.awsapprunner.com"; //"https://795c-34-136-60-84.ngrok-free.app",;
