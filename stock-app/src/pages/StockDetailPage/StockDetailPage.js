@@ -63,7 +63,7 @@ const StockDetailPage = () => {
         </h1>
 
         <div className="grid grid-cols-1 gap-4 mb-4">
-        <StockChart selectedStock={'tsla'} onStockChange={()=>{}}/>
+        <StockChart selectedStock={symbol} onStockChange={()=>{}}/>
           </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
