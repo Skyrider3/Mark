@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import CustomCandlestickChart from "./CustomCandlestickChart";
+import StockChart from "../Analysis/StockChart";
 import NavBar from "../NavBar";
 
 const StockDetailPage = () => {
@@ -27,11 +28,11 @@ const StockDetailPage = () => {
         const stockResult = await stockResponse.json();
 
         if (!stockResponse.ok) {
-          throw new Error("Failed to fetch stock data");
+          // throw new Error("Failed to fetch stock data");
         }
 
         if (stockResult.length === 0) {
-          throw new Error("No data available for this stock");
+          // throw new Error("No data available for this stock");
         }
 
         setStockData(stockResult[0]);
@@ -64,7 +65,7 @@ const StockDetailPage = () => {
         const newsResult = await newsResponse.json();
 
         if (!newsResponse.ok) {
-          throw new Error('Failed to fetch news data');
+          // throw new Error('Failed to fetch news data');
         }
 
         setLoading(false);
@@ -111,27 +112,7 @@ const StockDetailPage = () => {
           {stockData.companyName} ({stockData.symbol})
         </h1>
 
-        <div className="mb-4">
-          <label htmlFor="timeframe" className="mr-2">
-            Select Timeframe:
-          </label>
-          <select
-            id="timeframe"
-            value={selectedTimeframe}
-            onChange={(e) => setSelectedTimeframe(e.target.value)}
-            className="border rounded p-2"
-          >
-            <option value="1month">1 Month</option>
-            <option value="3months">3 Months</option>
-            <option value="6months">6 Months</option>
-            <option value="1year">1 Year</option>
-            <option value="2years">2 Years</option>
-          </select>
-        </div>
-
-        <div className="mb-8" style={{ width: "100%", height: "400px" }}>
-          <CustomCandlestickChart data={chartData} />
-        </div>
+        <StockChart selectedStock={'tsla'} onStockChange={()=>{}}/>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-white shadow rounded-lg p-4">
