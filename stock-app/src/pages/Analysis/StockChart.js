@@ -13,9 +13,12 @@ import {
   Select,
   MenuItem,
   Grid,
-  List,
-  ListItem,
-  ListItemText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import { useAppContext } from "../../context/AppContext";
 import { API_URL } from "../appconfig";
@@ -29,6 +32,16 @@ const StockChart = ({ selectedStock, onStockChange }) => {
   const chartContainerRef = React.useRef();
   const [debugInfo, setDebugInfo] = useState("");
 
+  const [orderType, setOrderType] = useState("market");
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [orderAction, setOrderAction] = useState("");
+  const [orderDetails, setOrderDetails] = useState({
+    quantity: "",
+    price: "",
+    stopPrice: "",
+  });
+  const [orderStatus, setOrderStatus] = useState(null);
+  const [selectedQuantity, setSelectedQuantity] = useState(null);
 
   const fetchStockData = useCallback(
     async (range, stockSymbol) => {
@@ -138,74 +151,219 @@ const StockChart = ({ selectedStock, onStockChange }) => {
     setDateRange(range);
   };
 
+  const handleQuantitySelect = (event, newQuantity) => {
+    setSelectedQuantity(newQuantity);
+    setOrderDetails({ ...orderDetails, quantity: newQuantity ? newQuantity.toString() : "" });
+  };
+
+  const handleBuySell = (action) => {
+    setOrderAction(action);
+    setShowOrderForm(true);
+  };
+
+  const handleOrderTypeChange = (event) => {
+    setOrderType(event.target.value);
+  };
+
+  const handleOrderDetailsChange = (event) => {
+    setOrderDetails({
+      ...orderDetails,
+      [event.target.name]: event.target.value,
+    });
+  };
+
+  const handleSubmitOrder = () => {
+    setTimeout(() => {
+      setOrderStatus(Math.random() > 0.5 ? "success" : "failure");
+      setTimeout(() => {
+        setShowOrderForm(false);
+        setOrderStatus(null);
+        setOrderDetails({ quantity: "", price: "", stopPrice: "" });
+        setSelectedQuantity(null);
+      }, 2000);
+    }, 1000);
+  };
+
   return (
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Stock Data Visualization
-            </Typography>
-            <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
-              <TextField
-                value={symbol}
-                onChange={(e) => {
-                  setSymbol(e.target.value.toUpperCase());
-                  onStockChange(e.target.value.toUpperCase());
-                }}
-                placeholder="Enter stock symbol"
-                size="small"
-                sx={{ mr: 2, width: 120 }}
-              />
-              <Select
-                value={dateRange}
-                onChange={(e) => handleDateRangeChange(e.target.value)}
-                size="small"
-                sx={{ mr: 2, width: 80 }}
-              >
-                <MenuItem value="1W">1W</MenuItem>
-                <MenuItem value="1M">1M</MenuItem>
-                <MenuItem value="3M">3M</MenuItem>
-                <MenuItem value="1Y">1Y</MenuItem>
-              </Select>
-              <Button
-                variant="contained"
-                onClick={() => fetchStockData(dateRange, symbol)}
-              >
-                Fetch Data
-              </Button>
-            </Box>
+    <Card>
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          Stock Data Chart
+        </Typography>
+        <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
+          <TextField
+            value={symbol}
+            onChange={(e) => {
+              setSymbol(e.target.value.toUpperCase());
+              onStockChange(e.target.value.toUpperCase());
+            }}
+            placeholder="Enter stock symbol"
+            size="small"
+            sx={{ mr: 2, width: 120 }}
+          />
+          <Select
+            value={dateRange}
+            onChange={(e) => handleDateRangeChange(e.target.value)}
+            size="small"
+            sx={{ mr: 2, width: 80 }}
+          >
+            <MenuItem value="1W">1W</MenuItem>
+            <MenuItem value="1M">1M</MenuItem>
+            <MenuItem value="3M">3M</MenuItem>
+            <MenuItem value="1Y">1Y</MenuItem>
+          </Select>
+          <Button
+            variant="contained"
+            onClick={() => fetchStockData(dateRange, symbol)}
+          >
+            Fetch Data
+          </Button>
+        </Box>
+        <Box
+          sx={{ height: 400, position: "relative" }}
+          ref={chartContainerRef}
+        >
+          {loading && (
             <Box
-              sx={{ height: 400, position: "relative" }}
-              ref={chartContainerRef}
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100%",
+                position: "absolute",
+                width: "100%",
+                backgroundColor: "rgba(255,255,255,0.8)",
+              }}
             >
-              {loading && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "100%",
-                    position: "absolute",
-                    width: "100%",
-                    backgroundColor: "rgba(255,255,255,0.8)",
-                  }}
-                >
-                  <CircularProgress />
-                </Box>
-              )}
+              <CircularProgress />
             </Box>
-            {error && (
-              <Alert severity="error" sx={{ mt: 2 }}>
-                {error}
+          )}
+        </Box>
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        <Typography
+          variant="body2"
+          sx={{ mt: 2, whiteSpace: "pre-line", color: "text.secondary" }}
+        >
+          {debugInfo}
+        </Typography>
+        
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <ToggleButtonGroup
+            value={selectedQuantity}
+            exclusive
+            onChange={handleQuantitySelect}
+            aria-label="quantity selection"
+          >
+            {[1, 2, 4, 6, 10].map((quantity) => (
+              <ToggleButton
+                key={quantity}
+                value={quantity}
+                aria-label={`quantity ${quantity}`}
+                sx={{
+                  borderRadius: '50%',
+                  minWidth: 40,
+                  width: 40,
+                  height: 40,
+                  mr: 1,
+                  '&.Mui-selected': {
+                    backgroundColor: 'primary.main',
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark',
+                    },
+                  },
+                }}
+              >
+                {quantity}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+          <Box>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={() => handleBuySell("buy")}
+              sx={{ mr: 1 }}
+            >
+              Buy
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => handleBuySell("sell")}
+            >
+              Sell
+            </Button>
+          </Box>
+        </Box>
+
+        <Dialog open={showOrderForm} onClose={() => setShowOrderForm(false)}>
+          <DialogTitle>{`${orderAction.toUpperCase()} ${symbol}`}</DialogTitle>
+          <DialogContent>
+            <FormControl fullWidth sx={{ mt: 2 }}>
+              <Select
+                value={orderType}
+                onChange={handleOrderTypeChange}
+                displayEmpty
+              >
+                <MenuItem value="market">Market Order</MenuItem>
+                <MenuItem value="limit">Limit Order</MenuItem>
+                <MenuItem value="stop">Stop Order</MenuItem>
+                <MenuItem value="stopLimit">Stop Limit Order</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              margin="dense"
+              name="quantity"
+              label="Quantity"
+              type="number"
+              fullWidth
+              value={orderDetails.quantity}
+              onChange={handleOrderDetailsChange}
+            />
+            {orderType !== "market" && (
+              <TextField
+                margin="dense"
+                name="price"
+                label={orderType === "stop" ? "Stop Price" : "Limit Price"}
+                type="number"
+                fullWidth
+                value={orderDetails.price}
+                onChange={handleOrderDetailsChange}
+              />
+            )}
+            {orderType === "stopLimit" && (
+              <TextField
+                margin="dense"
+                name="stopPrice"
+                label="Stop Price"
+                type="number"
+                fullWidth
+                value={orderDetails.stopPrice}
+                onChange={handleOrderDetailsChange}
+              />
+            )}
+            {orderStatus && (
+              <Alert severity={orderStatus === "success" ? "success" : "error"}>
+                {orderStatus === "success"
+                  ? "Order placed successfully!"
+                  : "Order failed. Please try again."}
               </Alert>
             )}
-            <Typography
-              variant="body2"
-              sx={{ mt: 2, whiteSpace: "pre-line", color: "text.secondary" }}
-            >
-              {debugInfo}
-            </Typography>
-          </CardContent>
-        </Card>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowOrderForm(false)}>Cancel</Button>
+            <Button onClick={handleSubmitOrder} variant="contained">
+              Place Order
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </CardContent>
+    </Card>
   );
 };
 
