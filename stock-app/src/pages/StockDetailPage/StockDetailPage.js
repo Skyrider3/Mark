@@ -67,7 +67,7 @@ const StockDetailPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-white shadow rounded-lg p-4">
-            <h2 className="text-xl font-semibold mb-2">Stock Information</h2>
+            <h2 className="text-xl font-semibold mb-2">Technical Information</h2>
             <p>
               <strong>Current Price:</strong> ${stockData.price.toFixed(2)}
             </p>
@@ -88,7 +88,7 @@ const StockDetailPage = () => {
             </p>
           </div>
           <div className="bg-white shadow rounded-lg p-4">
-            <h2 className="text-xl font-semibold mb-2">Company Information</h2>
+            <h2 className="text-xl font-semibold mb-2">Company Details</h2>
             <p>
               <strong>Industry:</strong> {stockData.industry || "N/A"}
             </p>

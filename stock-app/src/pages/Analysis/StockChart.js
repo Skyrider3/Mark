@@ -12,14 +12,17 @@ import {
   TextField,
   Select,
   MenuItem,
-  Grid,
   Dialog,
   DialogTitle,
   DialogContent,
+  Tooltip,
   DialogActions,
   ToggleButton,
   ToggleButtonGroup,
+  IconButton,
 } from "@mui/material";
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { useAppContext } from "../../context/AppContext";
 import { API_URL } from "../appconfig";
 import { axiosGet } from "../Axios/axiosMethods";
@@ -42,6 +45,7 @@ const StockChart = ({ selectedStock, onStockChange }) => {
   });
   const [orderStatus, setOrderStatus] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const fetchStockData = useCallback(
     async (range, stockSymbol) => {
@@ -184,12 +188,24 @@ const StockChart = ({ selectedStock, onStockChange }) => {
     }, 1000);
   };
 
+  const toggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    // Here you would typically also update this in your backend or local storage
+  };
+
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" gutterBottom>
-          Stock Data Chart
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6">
+            Stock Data Chart
+          </Typography>
+          <Tooltip title={isFavorite ? "Remove from favorites" : "Add to favorites"}>
+            <IconButton onClick={toggleFavorite} color="primary">
+              {isFavorite ? <StarIcon /> : <StarBorderIcon />}
+            </IconButton>
+          </Tooltip>
+        </Box>
         <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
           <TextField
             value={symbol}
