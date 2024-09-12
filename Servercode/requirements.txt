@@ -28,6 +28,5 @@ llama_index.llms.ollama
 PyPDF2
 pycryptodome
 ngrok
-
-
+ollama
 
