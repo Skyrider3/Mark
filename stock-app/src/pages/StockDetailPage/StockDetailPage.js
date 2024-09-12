@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import CustomCandlestickChart from "./CustomCandlestickChart";
 import StockChart from "../Analysis/StockChart";
 import NavBar from "../NavBar";
 
